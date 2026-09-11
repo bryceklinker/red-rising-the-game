@@ -23,6 +23,12 @@
 Goal per GDD §9: open a window, render a placeholder capsule, move it with
 WASD, basic camera. First real Cargo/Bevy contact.
 
+> **See `docs/craft-code/plans/2026-09-11-m0-implementation-plan.md`** for the
+> concrete "how" underneath these increments: exact Bevy integration/setup
+> steps, a command cheat sheet, the full headless-`App` + `MinimalPlugins`
+> testing pattern, the realistic dependency-injection options in Bevy, and
+> the pure-logic-vs-system module layout to use from increment #1 onward.
+
 1. **[independent] Project scaffolded and builds clean**
    - Behavior: `cargo new red-rising` (or workspace member) with Bevy added
      as a dependency, `dynamic_linking` feature enabled for dev builds.
