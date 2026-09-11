@@ -213,6 +213,14 @@ systems from §5) stay in the design as the long-term target, but are
 deliberately *not* scheduled yet — we'll re-plan past M4 once the learning
 pace and Bevy comfort level are clearer.
 
+**Actionable increments:** each milestone above is sliced into small,
+independently-testable, red-green-refactor-sized steps in
+[`docs/craft-code/plans/2026-09-11-milestone-breakdown.md`](craft-code/plans/2026-09-11-milestone-breakdown.md)
+(M0 and M1 fully sliced now; M2–M4 sketched at milestone grain and re-sliced
+as each one is reached, per `craft-code:planning`). Work that file top to
+bottom alongside `craft-code:strict-tdd` — it's the concrete "what do I write
+a test for next" answer this document intentionally stays too high-level for.
+
 ## 10. Process & Review — decided
 
 **Ownership (decided):** you write all game code by hand, milestone by

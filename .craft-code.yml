@@ -1,7 +1,7 @@
 # Project conventions for the craft-code skill suite.
 # See: https://github.com (craft-code plugin) skills/craft-code-conventions
 #
-# This repo is brand new: no Cargo.toml exists yet. Milestone 0 (see GDD.md §9)
+# This repo is brand new: no Cargo.toml exists yet. Milestone 0 (see docs/GDD.md §9)
 # is the human hand-writing the initial `cargo new` skeleton under strict TDD.
 # Commands below are the STANDARD Rust/Cargo conventions this project will use
 # once that skeleton lands — pre-filled now so every skill/agent reads the same
@@ -32,12 +32,12 @@ paths:
   design: docs/craft-code/design
 
 # Notes:
-# - Engine: Bevy (see GDD.md §9) — an ECS game engine, plain Rust throughout.
+# - Engine: Bevy (see docs/GDD.md §9) — an ECS game engine, plain Rust throughout.
 # - Ownership model for now: the human writes ALL game code by hand, under
 #   strict-tdd, to learn Rust. Sub-agents are NOT dispatched to implement game
 #   code at this stage. Sub-agents ARE used, on request, as independent
 #   reviewers of the human's diffs through the lens of code-style / strict-tdd
 #   / the smell catalog — review only, never edits to this repo's source.
-# - Design docs (GDD.md, milestone roadmap) live at the repo root for now;
-#   paths.design above is where deeper architecture/design notes will go once
-#   a milestone needs one (per craft-code:architecture-design).
+# - Design docs (docs/GDD.md, milestone roadmap, docs/milestones/*) live under
+#   docs/. paths.design above is where deeper architecture/design notes will
+#   go once a milestone needs one (per craft-code:architecture-design).
