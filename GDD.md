@@ -181,18 +181,18 @@ The implementation language is **Rust**, chosen explicitly as a learning
 vehicle — the tech plan below is written to *teach* Rust incrementally rather
 than to front-load the biggest architecture possible.
 
-- **Engine (proposed default): [Bevy](https://bevyengine.org/).** It's the
-  most idiomatic way to learn Rust through game code: everything is plain
-  Rust (no visual editor/scripting language to hide the language behind),
-  it's built on an ECS (entities/components/systems) which is a great forcing
-  function for learning Rust's ownership/borrowing model in a concrete way,
-  and its community + docs are the strongest of the pure-Rust engines.
-  - Lighter alternatives if a smaller learning surface is preferred:
-    **macroquad** (minimal, immediate-mode, closest to "just write a game
-    loop") or **ggez** (simple 2D, more traditional API). Bevy is the better
-    pick if the medium-term goal is the full 3D action-RPG in §1–§8; macroquad/
-    ggez are better if the near-term goal is "learn Rust with something small
-    and 2D first, worry about the big vision later."
+- **Engine (decided): [Bevy](https://bevyengine.org/).** Chosen over Fyrox
+  (the other finalist per §11's research) after weighing the trade-offs —
+  it's the most idiomatic way to learn Rust through game code: everything is
+  plain Rust (no visual editor/scripting language to hide the language
+  behind), it's built on an ECS (entities/components/systems) which is a
+  great forcing function for learning Rust's ownership/borrowing model in a
+  concrete way, and its ecosystem has named, real crates for exactly what the
+  milestone roadmap needs later (dialogue, squad AI, physics, third-person
+  camera) plus the largest community of the pure-Rust engines to get unstuck
+  with. Enable the `dynamic_linking` feature from the start to tame its
+  comparatively worse compile times, given how often TDD means re-running
+  `cargo test`/`cargo run`.
 - **Why this changes scope, not ambition:** the full three-Book, two-character
   campaign in §4 is the *destination*, not the first deliverable. For a
   from-scratch Rust learner, that design is broken into a **learning roadmap**
@@ -315,15 +315,17 @@ unstuck with as a simultaneous Rust+gamedev beginner. Fyrox is a legitimate
 alternative if the visual editor and lower post-1.0 churn matter more to you
 than ecosystem size — M0 is small enough to trial in either before committing.
 
+**Decision (2026-09-11): Bevy.** See §9 for the finalized rationale. M0 is
+unblocked — `cargo new`, Bevy dependency (with `dynamic_linking` enabled),
+window, placeholder capsule, WASD movement, test-first per `craft-code:strict-tdd`.
+
 ## 12. Open Questions For You
 
-1. **Engine pick** — Bevy vs. Fyrox is the real decision per the research
-   above (macroquad/ggez are scratch-prototype-only given their 3D ceilings).
-   Your call.
+1. ~~Engine pick~~ — **resolved: Bevy** (§9, §11).
 2. Genre lock beyond "the Rust learning roadmap": is action-RPG (my original
    assumption) still right for the long-term destination, or did you want
    tactics/strategy, narrative adventure, or multiplayer-first PvP instead?
 3. Scope: original trilogy as the eventual full-build target, or *Iron Gold*
    onward in scope too (bigger cast, bigger world)?
 
-(2) and (3) don't block starting M0 once (1) is picked.
+Neither (2) nor (3) blocks starting M0 — the engine is picked.
