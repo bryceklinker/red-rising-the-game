@@ -262,16 +262,68 @@ less here than it does for agent-authored PRs.
 the standard Cargo commands (`cargo build`/`test`/`clippy`/`fmt`) so every
 future skill/agent invocation reads the same commands instead of guessing.
 
-## 11. Open Questions For You
+## 11. Engine Trade-off Research (2026-09-10)
 
-1. Engine pick: Bevy (my default above) vs. macroquad/ggez for a gentler
-   start — or something else you have in mind?
+Researched via crates.io/GitHub/official docs before locking the engine
+choice. Full option set considered: **Bevy**, **macroquad**, **ggez**, and
+**Fyrox** (the one other actively-maintained option judged clearly relevant).
+
+| | **Bevy** | **macroquad** | **ggez** | **Fyrox** |
+|---|---|---|---|---|
+| Latest release | 0.19 (Jun 2026) | 0.4.16 (Jul 2026) | 0.10.0 (Jun 2026) | 1.0.0 (Mar 2026) |
+| Activity | Very high, ~quarterly | High, funding-constrained | Low, ~annual, losing mindshare to Bevy | Moderate, steady, just hit 1.0 |
+| Community | 47.5k★, 1,527 contributors, 23k Discord | 4.3k★, "Quads" Discord | 4.7k★, no dedicated Discord | 8.8k★, active Discord |
+| Architecture | ECS | Immediate-mode | Minimal retained (`EventHandler`) | Retained scene graph + visual editor |
+| Beginner borrow-checker friction | Real, ~2-3 wks to adjust, but well-documented | Lowest — no imposed data model | Low — you design your own structs | Low-moderate — arena handles instead of ECS queries |
+| 3D maturity | Production-viable, used in shipping/near-shipping titles | Rudimentary, not production-ready | Deliberately capped, no advanced rendering planned | Production-viable, editor-supported |
+| Official docs | New official Book (2026) + mature Unofficial Cheat Book | Thin | FAQ + thin docs | Official Book; editor reduces docs-dependency |
+| Compile times | Worst of the four (mitigated by `dynamic_linking`/Cranelift) | Best of the four | Better than Bevy, worse than macroquad | Bevy-ish, but has logic hot-reloading |
+| API churn | High — pre-1.0, migration guide every release | Low, small stable surface | Low, infrequent releases | Just hit 1.0 — churn should drop, still young |
+| Built-in UI | `bevy_ui` + `bevy_egui` | None (`egui` bolt-on) | None | Own 30+-widget UI framework |
+| Built-in animation/physics | Animation: early but native. Physics: 3rd-party (avian/rapier), mature | Neither | Neither | Both bundled and native |
+| M0–M4 milestone fit | Good, slightly heavy for M0 alone | Good for M0, strains by M2–M3 | OK for M0–M1, strains fast after | Good — editor helps level/UI milestones |
+| Long-term 3D action-RPG fit | Strong — largest ecosystem to grow into | Likely requires a rewrite | Likely requires a rewrite | Strong — native 3D + editor, no-rewrite path |
+
+**Framing:** it's effectively a two-horse race between **Bevy** and **Fyrox**
+for the multi-year foundation; macroquad/ggez are both easier on day one but
+have maintainer-acknowledged 3D ceilings, so committing years of hand-written
+game code to either risks a full engine migration exactly when the project
+reaches "actually a 3D action-RPG" — the most expensive point to rewrite.
+
+- **Bevy** — largest community/ecosystem, and crucially has *named, real*
+  crates for exactly what the milestone roadmap needs later: `bevy_yarnspinner`
+  (dialogue), `big-brain` (squad/utility AI), `avian`/`bevy_rapier3d`
+  (physics), `bevy_tnua` + `bevy_third_person_camera` (character control).
+  Costs: pre-1.0 churn you'll eat repeatedly, ECS is a second thing to learn
+  on top of Rust itself, worse compile times (real but mitigated — enable the
+  `dynamic_linking` feature from the start given how often TDD means running
+  `cargo test`/`cargo run`).
+- **Fyrox** — the more surprising finding: just hit 1.0 (lower future churn
+  risk than Bevy), 3D-native with a real Unity/Godot-style visual editor
+  (helps specifically with the level-building and UI/dialogue milestones),
+  ships animation/physics/UI in-house rather than as a patchwork of
+  third-party crates. Cost: much smaller community/crate ecosystem — more
+  glue code (e.g. squad AI) falls to you rather than an existing crate.
+- **macroquad / ggez** — best for a short-lived Rust warm-up or scratch
+  prototyping, not recommended as the permanent foundation given the explicit
+  3D ceiling both maintainers have stated.
+
+*Sub-agent's bet, offered as input, not a decision made for you:* Bevy, on
+ecosystem depth for the specific systems this project's own milestones name
+(dialogue, AI, third-person camera) and the much larger pool of people to get
+unstuck with as a simultaneous Rust+gamedev beginner. Fyrox is a legitimate
+alternative if the visual editor and lower post-1.0 churn matter more to you
+than ecosystem size — M0 is small enough to trial in either before committing.
+
+## 12. Open Questions For You
+
+1. **Engine pick** — Bevy vs. Fyrox is the real decision per the research
+   above (macroquad/ggez are scratch-prototype-only given their 3D ceilings).
+   Your call.
 2. Genre lock beyond "the Rust learning roadmap": is action-RPG (my original
    assumption) still right for the long-term destination, or did you want
    tactics/strategy, narrative adventure, or multiplayer-first PvP instead?
 3. Scope: original trilogy as the eventual full-build target, or *Iron Gold*
    onward in scope too (bigger cast, bigger world)?
 
-None of these block starting M0 — Bevy is a safe default to start typing
-`cargo new` against today. Flag if you want to change course before or after
-M0 lands.
+(2) and (3) don't block starting M0 once (1) is picked.
