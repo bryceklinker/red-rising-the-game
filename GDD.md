@@ -213,25 +213,65 @@ systems from §5) stay in the design as the long-term target, but are
 deliberately *not* scheduled yet — we'll re-plan past M4 once the learning
 pace and Bevy comfort level are clearer.
 
-## 10. Open Questions For You
+## 10. Process & Review — decided
 
-1. **Who writes the Rust?** This is the big one, given "learning experience"
-   is the stated goal: do you want to hand-write the Rust yourself (with the
-   team producing design docs, architecture/ECS guidance, and code review
-   only — no sub-agent commits to the game code), or do you want the coding
-   sub-agents to implement milestones for you (faster progress, less hands-on
-   learning)? A middle path also works well: you write it, and a sub-agent
-   acts purely as a **reviewer** (cross-checking idiomatic Rust/Bevy patterns
-   on your commits) without ever writing code itself. This determines how I
-   run the rest of this project, so I'm pausing on it rather than guessing.
-2. Engine pick: Bevy (my default above) vs. macroquad/ggez for a gentler
+**Ownership (decided):** you write all game code by hand, milestone by
+milestone, to learn Rust. No coding sub-agent is dispatched to implement game
+code at this stage. That will shift over time — as you get comfortable with
+the language, we hand progressively more milestones to the coding team — but
+the starting default is 100% hand-written.
+
+**TDD is non-optional (decided).** Every increment of game code follows the
+`craft-code:strict-tdd` discipline, translated to this Rust/Cargo project:
+
+1. Write one failing test first (`cargo test`), for one small behavior.
+2. Watch it fail (red) — confirms the test actually exercises the new
+   behavior and isn't vacuously passing.
+3. Write the minimum code to make it pass (green).
+4. Refactor with the test green as a safety net (`craft-code:code-style` /
+   `craft-code:refactoring` as the lens — immutability by default, small
+   functions, no dead comments, clean module boundaries).
+5. Commit at green, and again after refactor.
+
+No production code is written ahead of a failing test — including "just this
+one small thing." Real (non-mocked) collaborators are used wherever they run
+deterministically in-process; test doubles are reserved for genuine external
+seams (which, for a local single-player game, will be rare early on —
+things like the OS clock/filesystem or, later, a network layer).
+
+**Review process (decided):** review runs through the `craft-code` lens from
+day one, even though the `dev-workflow` pipeline's full intake→plan→worktree
+ceremony is deferred until it's earning its keep. Concretely, on request (or
+at the end of each milestone) I dispatch an independent sub-agent with
+`purpose: review` — currently `claude_code`, the only coding harness ready on
+this host — to review your diff against:
+- `craft-code:code-style` (immutability, naming, small functions, no
+  explanatory comments for non-awkward code, results/null-objects over
+  exceptions/nulls where idiomatic in Rust)
+- `craft-code:strict-tdd` adherence (tests-first, one behavior at a time, real
+  collaborators over mocks)
+- the smell catalog behind `craft-code:refactoring`
+
+The reviewer only reports findings — it never edits this repo. You decide
+what to act on. Once a second harness (codex/opencode/cursor/hermes/pi/agy) is
+available on this host, cross-vendor review becomes an option too, though with
+a human author instead of a sub-agent implementer, that distinction matters
+less here than it does for agent-authored PRs.
+
+**Conventions file:** `.craft-code.yml` is now committed at the repo root with
+the standard Cargo commands (`cargo build`/`test`/`clippy`/`fmt`) so every
+future skill/agent invocation reads the same commands instead of guessing.
+
+## 11. Open Questions For You
+
+1. Engine pick: Bevy (my default above) vs. macroquad/ggez for a gentler
    start — or something else you have in mind?
-3. Genre lock beyond "the Rust learning roadmap": is action-RPG (my original
+2. Genre lock beyond "the Rust learning roadmap": is action-RPG (my original
    assumption) still right for the long-term destination, or did you want
    tactics/strategy, narrative adventure, or multiplayer-first PvP instead?
-4. Scope: original trilogy as the eventual full-build target, or *Iron Gold*
+3. Scope: original trilogy as the eventual full-build target, or *Iron Gold*
    onward in scope too (bigger cast, bigger world)?
 
-Once (1) is answered I'll know whether to start dispatching implementation
-milestones to the coding team, or instead switch into a design-doc-and-review
-role while you write the Rust yourself.
+None of these block starting M0 — Bevy is a safe default to start typing
+`cargo new` against today. Flag if you want to change course before or after
+M0 lands.
