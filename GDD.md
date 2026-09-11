@@ -175,18 +175,63 @@ war-games → war-torn Mars cities).
 - Sequel/DLC arc reserved for *Iron Gold → Light Bringer* once the POV cast
   expands.
 
-## 9. Open Questions For You
+## 9. Technical Approach — Rust
 
-1. Genre lock: is action-RPG (my assumption) right, or did you want something
-   else — tactics/strategy (fits the political-maneuvering side of the books
-   very well), a narrative adventure (Telltale-style), or a multiplayer-first
-   PvP game (Institute war games as the *core* loop rather than a side mode)?
-2. Scope: is the original trilogy the right v1 cut, or do you want *Iron Gold*
-   onward in scope from day one (bigger cast, bigger world, heavier narrative
-   lift)?
-3. Platform/engine target — informs how concrete the next design pass (systems
-   spec, engine choice, repo scaffolding) should get.
+The implementation language is **Rust**, chosen explicitly as a learning
+vehicle — the tech plan below is written to *teach* Rust incrementally rather
+than to front-load the biggest architecture possible.
 
-Once these are pinned down I can turn this into a build-ready spec (systems
-docs, level list, engine/repo scaffolding) and start handing implementation
-work to the coding team.
+- **Engine (proposed default): [Bevy](https://bevyengine.org/).** It's the
+  most idiomatic way to learn Rust through game code: everything is plain
+  Rust (no visual editor/scripting language to hide the language behind),
+  it's built on an ECS (entities/components/systems) which is a great forcing
+  function for learning Rust's ownership/borrowing model in a concrete way,
+  and its community + docs are the strongest of the pure-Rust engines.
+  - Lighter alternatives if a smaller learning surface is preferred:
+    **macroquad** (minimal, immediate-mode, closest to "just write a game
+    loop") or **ggez** (simple 2D, more traditional API). Bevy is the better
+    pick if the medium-term goal is the full 3D action-RPG in §1–§8; macroquad/
+    ggez are better if the near-term goal is "learn Rust with something small
+    and 2D first, worry about the big vision later."
+- **Why this changes scope, not ambition:** the full three-Book, two-character
+  campaign in §4 is the *destination*, not the first deliverable. For a
+  from-scratch Rust learner, that design is broken into a **learning roadmap**
+  of small, always-playable milestones (below) instead of one big build.
+
+### Learning-oriented milestone roadmap (supersedes a single "v1" cut)
+
+| Milestone | Scope | Rust concepts it forces |
+|---|---|---|
+| **M0 — Skeleton** | Open a window, render a placeholder capsule, move it with WASD, basic camera. No combat yet. | Cargo project structure, Bevy App/Plugin basics, ECS components/systems, `Query`/`Res` borrowing |
+| **M1 — Lykos vertical slice** | One small hand-built level (a mine tunnel), Darrow placeholder model, a single enemy type, one weapon (razor) with a 2–3 move combo, a scripted intro/outro. This is the first "book demo." | State machines (game states), input handling, collision, basic animation, enums/pattern matching for combat states |
+| **M2 — Cover meter + dialogue** | Add Darrow's Cover meter, a small branching dialogue interaction, one NPC that reacts to it. | Data-driven design (loading dialogue from data files, e.g. RON/JSON via `serde`), event systems, UI (`bevy_ui`) |
+| **M3 — Sevro + squad command** | Second playable character, a tiny 2–3-Howler squad-command demo (Hold/Flank on one small encounter). | More complex ECS relationships, trait objects vs. enums for character-specific behavior, shared vs. character-specific systems design |
+| **M4 — Institute set-piece** | The first real "Book-ending" set-piece at small scale (a scaled-down House war-game skirmish). | Performance-aware ECS (many entities), possibly async/threading, save/load (`serde` + file I/O) |
+
+Later milestones (Book II/III content, multiplayer, the full Color-hierarchy
+systems from §5) stay in the design as the long-term target, but are
+deliberately *not* scheduled yet — we'll re-plan past M4 once the learning
+pace and Bevy comfort level are clearer.
+
+## 10. Open Questions For You
+
+1. **Who writes the Rust?** This is the big one, given "learning experience"
+   is the stated goal: do you want to hand-write the Rust yourself (with the
+   team producing design docs, architecture/ECS guidance, and code review
+   only — no sub-agent commits to the game code), or do you want the coding
+   sub-agents to implement milestones for you (faster progress, less hands-on
+   learning)? A middle path also works well: you write it, and a sub-agent
+   acts purely as a **reviewer** (cross-checking idiomatic Rust/Bevy patterns
+   on your commits) without ever writing code itself. This determines how I
+   run the rest of this project, so I'm pausing on it rather than guessing.
+2. Engine pick: Bevy (my default above) vs. macroquad/ggez for a gentler
+   start — or something else you have in mind?
+3. Genre lock beyond "the Rust learning roadmap": is action-RPG (my original
+   assumption) still right for the long-term destination, or did you want
+   tactics/strategy, narrative adventure, or multiplayer-first PvP instead?
+4. Scope: original trilogy as the eventual full-build target, or *Iron Gold*
+   onward in scope too (bigger cast, bigger world)?
+
+Once (1) is answered I'll know whether to start dispatching implementation
+milestones to the coding team, or instead switch into a design-doc-and-review
+role while you write the Rust yourself.
