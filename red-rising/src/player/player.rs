@@ -18,6 +18,15 @@ pub fn move_player(
     if keyboard.pressed(KeyCode::KeyW) {
         direction.y += 1.0;
     }
+    if keyboard.pressed(KeyCode::KeyS) {
+        direction.y -= 1.0;
+    }
+    if keyboard.pressed(KeyCode::KeyA) {
+        direction.x -= 1.0;
+    }
+    if keyboard.pressed(KeyCode::KeyD) {
+        direction.x += 1.0;
+    }
 
     transform.translation += direction.normalize_or_zero() * SPEED;
 }
