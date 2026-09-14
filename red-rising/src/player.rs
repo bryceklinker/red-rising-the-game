@@ -14,6 +14,10 @@ pub fn move_player(
     mut query: Query<&mut Transform, With<Player>>,
 ) {
     let Ok(mut transform) = query.single_mut() else { return };
+    transform.translation += get_direction_from_keys(&keyboard) * SPEED;
+}
+
+pub fn get_direction_from_keys(keyboard: &ButtonInput<KeyCode>) -> Vec3 {
     let mut direction = Vec3::ZERO;
     if keyboard.pressed(KeyCode::KeyW) {
         direction.y += 1.0;
@@ -27,6 +31,5 @@ pub fn move_player(
     if keyboard.pressed(KeyCode::KeyD) {
         direction.x += 1.0;
     }
-
-    transform.translation += direction.normalize_or_zero() * SPEED;
+    return direction.normalize_or_zero();
 }
