@@ -1,3 +1,5 @@
+pub mod movement;
+
 use bevy::MinimalPlugins;
 use bevy::prelude::{App, ButtonInput, KeyCode, Transform};
 use red_rising::plugins::player_movement_plugin::player_movement_plugin;
@@ -9,21 +11,6 @@ fn setup_testing_app() -> App {
     app.insert_resource(ButtonInput::<KeyCode>::default());
     app.update();
     return app;
-}
-
-#[test]
-fn when_w_is_pressed_then_player_moves_forward() {
-    let mut app = setup_testing_app();
-
-    press_key(&mut app, KeyCode::KeyW);
-
-    let transform = app
-        .world_mut()
-        .query::<&Transform>()
-        .single(app.world())
-        .unwrap();
-    assert_eq!(transform.translation.x, 0.0);
-    assert_eq!(transform.translation.y, 1.0);
 }
 
 #[test]
@@ -39,21 +26,6 @@ fn when_s_is_pressed_then_player_moves_backward() {
         .single(app.world())
         .unwrap();
     assert_eq!(transform.translation.x, 0.0);
-    assert_eq!(transform.translation.y, 0.0);
-}
-
-#[test]
-fn when_a_is_pressed_then_player_moves_left() {
-    let mut app = setup_testing_app();
-
-    press_key(&mut app, KeyCode::KeyA);
-
-    let transform = app
-        .world_mut()
-        .query::<&Transform>()
-        .single(app.world())
-        .unwrap();
-    assert_eq!(transform.translation.x, -1.0);
     assert_eq!(transform.translation.y, 0.0);
 }
 
