@@ -1,4 +1,4 @@
-use bevy::prelude::{ButtonInput, Commands, Component, KeyCode, Query, Res, Transform, With, Vec3};
+use bevy::prelude::{ButtonInput, Commands, Component, KeyCode, Query, Res, Transform, Vec3, With};
 
 const SPEED: f32 = 1.0;
 
@@ -13,7 +13,9 @@ pub fn move_player(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut query: Query<&mut Transform, With<Player>>,
 ) {
-    let Ok(mut transform) = query.single_mut() else { return };
+    let Ok(mut transform) = query.single_mut() else {
+        return;
+    };
     transform.translation += get_direction_from_keys(&keyboard) * SPEED;
 }
 
