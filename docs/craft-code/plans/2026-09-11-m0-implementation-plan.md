@@ -243,17 +243,62 @@ renders it).
 
 ## 6. Mapping onto the increment list
 
-No change to increment order/files — this doc is the *how* underneath it.
-- #1 → §1 (setup) + §2 (bootstrap).
-- #2–#5 → §3's headless pattern; §5's pure/system split is #3 (pure)
-  feeding #4/#5 (systems).
-- #6 → manual-verification seam; bundles mesh + light + fixed camera,
-  since a lit `StandardMaterial` needs a light and a camera to be seen
-  through — any one alone is unverifiable by eye.
-- #7 → camera-offset math is pure per §5 (`P + O`), testable like #3;
-  adds follow behavior on top of #6's already-visible fixed camera.
-- M1+ → §5's module layout/plugin-isolation are the going-forward
-  convention once each milestone is re-sliced.
+Cross-reference only — no change to `milestone-breakdown.md`'s increment
+order or files. For each numbered M0 increment, which section above to
+actually open while implementing it, and why:
+
+- **#1 (project scaffolds)** → §1 for the `Cargo.toml` shape
+  (`bevy = "0.19"`, `edition = "2024"`, `dynamic_linking`, the dev-profile
+  speedup block) + §2 for the literal bootstrap commands
+  (`cargo new` → `cargo add` → `cargo build` → `cargo run`).
+
+- **#2 (player entity spawns)** → §3's `create_test_app()` helper
+  (`App::new()` + `MinimalPlugins` + inserting `ButtonInput` by hand) is
+  the harness this increment's test runs inside; §4(a) explains why
+  `Commands` + `Startup` need no extra DI wiring beyond that.
+
+- **#3 (WASD → direction, pure)** → this increment *is* §5's "PURE" half
+  of the worked example, `wasd_to_direction` — copy that shape
+  (`&[KeyCode] -> Vec2/Vec3`, no `Res`/`Query` in the signature) and test
+  it with a plain `#[test]`, no `App` involved at all.
+
+- **#4 (direction → Transform)** → §5's "SYSTEM" half (`move_player`
+  taking `Res<Time>` + `Query<&mut Transform, With<Player>>`). Test it via
+  §3's pattern, but note §3's own caveat: the worked example there
+  deliberately skips `Time`/`delta_secs()` because the first tick's delta
+  isn't deterministic under `MinimalPlugins` — this increment is where you
+  advance `Time` by a known, fixed delta instead of relying on real
+  wall-clock elapsed time.
+
+- **#5 (WASD moves the player end-to-end)** → wires #3 into #4; the test
+  is essentially §3's full `moves_right_when_d_is_pressed` example, just
+  split across the real `movement/input.rs` + `movement/apply.rs` files
+  instead of living in one illustration file.
+
+- **#6 (mesh + light + fixed camera)** → a manual-verification seam per
+  `craft-code:verification`, not a TDD gap — there's no headless
+  assertion for "does a capsule render." It bundles three pieces
+  (capsule `Mesh3d`/`MeshMaterial3d`, a light, a `Camera3d`) into one
+  increment specifically because a lit `StandardMaterial` needs both a
+  light source *and* a camera pointed at it to be visible — building any
+  one of the three alone leaves nothing on screen to verify by eye. Per
+  §5's module layout: mesh/material go in `src/player.rs`, the light +
+  fixed camera go in `src/camera.rs`.
+
+- **#7 (camera follows the player)** → the offset math
+  (`camera_pos = player_pos + offset`) is pure per §5's rule
+  (`Query`/`Res` in the signature = glue, plain data in/out = pure),
+  testable exactly like #3 — `assert_eq!(camera_pos, player_pos + offset)`
+  with no `App`. Only "does the trailing motion look right" is manual;
+  the code change itself replaces #6's static camera position with a
+  per-frame function of the player's `Transform`, still in `src/camera.rs`.
+
+- **M1 onward** → re-run §5's pure/system split and its plugin-isolation
+  rule (no feature plugin imports another feature plugin directly) for
+  every new module; §5's module-layout tree already sketches the target
+  file locations for M1–M4 (`level.rs`, `enemy.rs`, `combat/razor.rs`,
+  `cover/`, `dialogue/`, `ui/`, `squad/`, `save/`) so you're not inventing
+  the shape from scratch when you get there.
 
 ## Sources
 
