@@ -1,6 +1,6 @@
 use bevy::prelude::{KeyCode, Vec3};
-use rstest::rstest;
 use red_rising::movement::input::get_direction_from_keys;
+use rstest::rstest;
 
 #[test]
 fn when_no_keys_are_pressed_then_direction_is_zero() {

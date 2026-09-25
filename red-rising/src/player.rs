@@ -1,5 +1,5 @@
-use bevy::prelude::{ButtonInput, Commands, Component, KeyCode, Query, Res, Transform, With};
 use crate::movement::input::get_direction_from_keys;
+use bevy::prelude::{ButtonInput, Commands, Component, KeyCode, Query, Res, Transform, With};
 
 const SPEED: f32 = 1.0;
 
