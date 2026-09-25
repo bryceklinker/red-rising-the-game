@@ -1,214 +1,149 @@
 # Plan: Milestone breakdown into actionable increments
 
-> Companion to `docs/GDD.md` §9 (milestone roadmap). Each milestone below is
-> sliced into thin, independently-testable increments per
-> `craft-code:planning` — one behavior, one failing test, minimal code to
-> green, refactor, commit. Work top to bottom within a milestone; don't start
-> increment N+1 until N is green and committed.
->
-> Since all code here is hand-written solo (no sub-agent implementers per
-> `docs/GDD.md` §10), the `[independent]`/`[depends: N]` tags below are for
-> your own sequencing clarity, not for parallel dispatch — you can still use
-> them to know which increments could be reordered if one gets stuck.
->
-> **Bevy-testing tip used throughout:** most of these increments don't need a
-> window or renderer to test. Build an `App` with `MinimalPlugins` (or just
-> `App::new()` + the specific plugin under test), insert the
-> entities/resources you need by hand, call `app.update()` once (or a few
-> times to simulate ticks), then assert on component/resource state. That's a
-> real, in-process, non-mocked way to test ECS systems — no doubles needed.
+> Companion to `docs/GDD.md` §9. Sliced per `craft-code:planning`: one
+> behavior, one failing test, minimal code to green, refactor, commit.
+> Work top to bottom; don't start N+1 before N is green and committed.
+> Hand-written solo — `[independent]`/`[depends: N]` are sequencing hints
+> only, not parallel-dispatch tags.
+
+**Testing tip:** `App::new()` + `MinimalPlugins` (or just the plugin under
+test), insert entities/resources by hand, `app.update()`, assert state.
+Real in-process ECS testing, no doubles needed.
 
 ## M0 — Skeleton
 
-Goal per GDD §9: open a window, render a placeholder capsule, move it with
-WASD, basic camera. First real Cargo/Bevy contact.
+Goal: window, placeholder capsule, WASD movement, basic camera.
+See `2026-09-11-m0-implementation-plan.md` for the "how" (commands, DI,
+module layout, full headless-test example).
 
-> **See `docs/craft-code/plans/2026-09-11-m0-implementation-plan.md`** for the
-> concrete "how" underneath these increments: exact Bevy integration/setup
-> steps, a command cheat sheet, the full headless-`App` + `MinimalPlugins`
-> testing pattern, the realistic dependency-injection options in Bevy, and
-> the pure-logic-vs-system module layout to use from increment #1 onward.
-
-1. **[independent] Project scaffolded and builds clean**
-   - Behavior: `cargo new red-rising` (or workspace member) with Bevy added
-     as a dependency, `dynamic_linking` feature enabled for dev builds.
-   - "Test": there's no behavior to unit-test yet — the acceptance bar is
-     `cargo build` and `cargo run` both succeed and open an empty window.
-     Treat this as the one pre-TDD scaffolding step; TDD starts at #2.
+1. **[independent] Project scaffolds and builds**
+   - `cargo new` + `bevy` dep, `dynamic_linking` enabled for dev.
+   - No test yet — bar is `cargo build`/`cargo run` open an empty window.
    - Files: `Cargo.toml`, `src/main.rs`.
 
-2. **[depends: 1] Player entity spawns with identifying marker**
-   - Behavior: on startup, exactly one entity exists with a `Player` marker
-     component and a `Transform` at the origin.
-   - Test: headless `App` (`MinimalPlugins`), run the startup system once via
-     `app.update()`, query for `With<Player>`, assert count == 1 and
-     `Transform::translation == Vec3::ZERO`.
-   - Files: `src/player.rs` (new), `src/main.rs` (register plugin).
+2. **[depends: 1] Player entity spawns**
+   - `Player` marker + `Transform::ZERO` on startup.
+   - Test: headless `App`, `app.update()`, query `With<Player>` → count 1,
+     translation `== ZERO`.
+   - Files: `src/player.rs`, `src/main.rs`.
 
-3. **[depends: 2] Raw WASD key state maps to a movement direction**
-   - Behavior: a pure function/system takes `ButtonInput<KeyCode>` and
-     produces a normalized `Vec2`/`Vec3` direction (e.g. W+D → diagonal,
-     normalized so it isn't faster than a single key).
-   - Test: no Bevy app needed for the pure-function version — call it
-     directly with a fake `ButtonInput` state built via Bevy's own
-     `ButtonInput::press`; assert direction and normalization (including the
-     "no diagonal speed boost" case explicitly, since it's an easy bug).
-   - Files: `src/movement/input.rs` (new).
+3. **[depends: 2] WASD → direction (pure)**
+   - `ButtonInput<KeyCode>` → normalized direction; no diagonal speed boost.
+   - Test: plain unit test, no `App`.
+   - Files: `src/movement/input.rs`.
 
-4. **[depends: 2] Movement direction updates player Transform over time**
-   - Behavior: given a non-zero direction and a fixed speed, one `app.update()`
-     tick moves the player's `Transform.translation` by
-     `direction * speed * delta_time`.
-   - Test: headless `App`, insert a `Time` resource advanced by a known delta
-     (Bevy supports manually advancing `Time` in tests), assert the resulting
-     translation matches the expected math.
-   - Files: `src/movement/apply.rs` (new).
+4. **[depends: 2] Direction → Transform**
+   - One tick moves `translation` by `direction * speed * delta_time`.
+   - Test: headless `App`, advance `Time` by a known delta, assert math.
+   - Files: `src/movement/apply.rs`.
 
-5. **[depends: 3, 4] WASD end-to-end moves the player entity**
-   - Behavior: wire #3's input system → #4's movement system via a shared
-     component/event so pressing W actually moves the spawned player entity
-     one full tick.
-   - Test: headless `App` with both systems registered, simulate a pressed
-     `KeyCode::KeyW`, call `app.update()`, assert the player's `Transform`
-     moved in the expected (forward) direction by the expected amount.
+5. **[depends: 3, 4] WASD moves the player end-to-end**
+   - Wire #3 → #4 so pressing W moves the spawned player one tick.
+   - Test: headless `App`, press `KeyCode::KeyW`, `app.update()`, assert
+     `Transform` moved forward by the expected amount.
    - Files: `src/movement/mod.rs`, `src/player.rs`.
 
-6. **[depends: 5] Scene is actually visible: capsule mesh + light + a fixed camera**
-   - Behavior: three pieces have to exist together before anything is visible
-     on screen at all, so they're bundled as one increment rather than three
-     individually-unverifiable slivers:
-     - spawn a capsule `Mesh3d`/`MeshMaterial3d` on the player entity, at the
-       position #2–#5 already drive correctly;
-     - spawn a light (`PointLight` or `DirectionalLight`) into the scene — a
-       `StandardMaterial` capsule with zero lights renders solid black, which
-       looks identical to "nothing spawned" and is a common, confusing dead
-       end if it's skipped or deferred to a later increment;
-     - spawn a `Camera3d` entity at a fixed position that actually points at
-       the origin (a static offset is fine here — making it *follow* the
-       player is #7's job, not this one).
-   - "Test": this is rendering glue with no meaningful headless assertion —
-     verify by eye (`cargo run`, confirm a lit capsule is visible on screen
-     and WASD moves it). Note this explicitly as a manual-verification step,
-     not a gap in TDD discipline (per `craft-code:verification` — some seams
-     are genuinely UI/rendering and get proven by running the app, not a unit
-     test). Splitting mesh/light/camera into separate increments would leave
-     each one individually unverifiable by eye, since the window shows
-     nothing at all until all three exist — that's the reason they're one
-     increment here instead of three.
-   - Files: `src/player.rs` (mesh/material), `src/camera.rs` (new — fixed
-     camera + light spawn for now; #7 adds follow behavior on top of this).
+6. **[depends: 5] Scene visible: mesh + light + fixed camera**
+   - Bundled, not split, because none of the three is individually
+     verifiable by eye until all three exist:
+     - capsule `Mesh3d`/`MeshMaterial3d` on the player entity
+     - a light (`PointLight`/`DirectionalLight`) — a `StandardMaterial`
+       capsule with no light renders solid black, indistinguishable from
+       "nothing spawned"
+     - `Camera3d` at a fixed position pointed at the origin (follow logic
+       is #7, not this)
+   - Test: manual — `cargo run`, confirm a lit capsule is visible and WASD
+     moves it. Rendering glue has no meaningful headless assertion; this is
+     a documented manual-verification seam, not a TDD gap.
+   - Files: `src/player.rs`, `src/camera.rs`.
 
-7. **[depends: 6] Camera follows the player instead of staying fixed**
-   - Behavior: the camera's position becomes a deterministic function of the
-     player's `Transform` every frame (fixed-offset third-person, or a simple
-     orbit) instead of the static position #6 used just to first prove
-     anything renders.
-   - Test: the offset-calculation itself is pure and testable headless
-     (given player position P and offset O, camera position == P + O);
-     visual confirmation of "does it look right"/"tracks smoothly" is manual
-     per #6's note.
+7. **[depends: 6] Camera follows the player**
+   - Camera position becomes `f(player Transform)` every frame, replacing
+     #6's static position.
+   - Test: offset math is pure and testable headless (`P + O`); "looks
+     right"/"tracks smoothly" is manual.
    - Files: `src/camera.rs`.
 
-**M0 exit condition:** `cargo run` opens a window, shows a lit capsule, WASD
-moves it smoothly, a camera trails it — and every non-rendering behavior
-above has a green headless test behind it.
+**Exit:** `cargo run` opens a window, shows a lit capsule, WASD moves it
+smoothly, camera trails it — every non-rendering behavior has a green
+headless test.
 
 ## M1 — Lykos vertical slice
 
-Goal per GDD §9: one hand-built level (mine tunnel), Darrow placeholder,
-one enemy type, one weapon (razor) with a 2–3 move combo, scripted intro/outro.
-Broken down further once M0 lands and its actual APIs/patterns are known —
-sketched now at the grain the current design supports:
+Goal: one hand-built level (mine tunnel), Darrow placeholder, one enemy,
+razor + 2–3 move combo, scripted intro/outro.
 
-1. **[depends: M0] Game-state machine: Intro → Playing → Outro**
-   - Behavior: an explicit `States` enum drives which systems run; starting
-     state is `Intro`, a trigger (timer or input) transitions to `Playing`.
-   - Test: headless `App`, assert initial state, simulate the trigger,
-     assert transition to `Playing`.
-   - Files: `src/game_state.rs` (new).
+1. **[depends: M0] State machine: Intro → Playing → Outro**
+   - `States` enum gates which systems run; starts `Intro`.
+   - Test: headless `App`, assert initial state, trigger, assert transition.
+   - Files: `src/game_state.rs`.
 
-2. **[independent of 1] Static level geometry loads (the mine tunnel)**
-   - Behavior: a level-loading system spawns fixed collidable geometry from
-     a data description (even a hardcoded list of boxes at this stage).
-   - Test: headless `App`, assert the expected number/shape of collider
-     entities exist after the load system runs.
-   - Files: `src/level.rs` (new).
+2. **[independent of 1] Level geometry loads**
+   - Loader spawns fixed collidable geometry from a data description.
+   - Test: headless `App`, assert expected collider entity count/shape.
+   - Files: `src/level.rs`.
 
-3. **[depends: 1, 2] Player collides with level geometry (can't walk through walls)**
-   - Behavior: player movement (M0 #4/#5) is clamped/blocked by level colliders.
-   - Test: headless `App`, place a wall collider directly in the movement
-     path, simulate forward input for N ticks, assert translation stops at
-     the wall boundary rather than passing through.
-   - Files: `src/movement/collision.rs` (new).
+3. **[depends: 1, 2] Player can't walk through walls**
+   - Movement clamped/blocked by level colliders.
+   - Test: headless `App`, wall in path, N ticks forward, assert stopped
+     at the boundary.
+   - Files: `src/movement/collision.rs`.
 
-4. **[depends: 1] Enemy entity spawns with health and a simple AI state**
-   - Behavior: one enemy archetype spawns with `Health(n)` and an
-     `EnemyState` (e.g. `Idle`/`Aggro`) driven by distance to the player.
-   - Test: headless `App`, place player within/outside aggro radius across
-     two runs, assert `EnemyState` flips accordingly.
-   - Files: `src/enemy.rs` (new).
+4. **[depends: 1] Enemy spawns with health + AI state**
+   - `Health(n)` + `EnemyState` (`Idle`/`Aggro`) driven by player distance.
+   - Test: headless `App`, player in/out of aggro radius, assert state flips.
+   - Files: `src/enemy.rs`.
 
-5. **[depends: 4] Razor attack reduces enemy health on hit**
-   - Behavior: a basic attack input applies damage to an enemy within range;
-     health hitting 0 marks the enemy for despawn.
-   - Test: headless `App`, position enemy in range, simulate attack input,
-     assert health decreases by the expected amount; assert despawn marker
-     appears once health <= 0.
-   - Files: `src/combat/razor.rs` (new).
-
-6. **[depends: 5] Razor combo: second/third attack within a window deals bonus damage**
-   - Behavior: chaining attacks within a timing window increases damage or
-     changes the animation state (combo counter).
-   - Test: headless `App`, simulate attack, advance a small delta, simulate
-     a second attack inside the window, assert combo counter/bonus applied;
-     simulate outside the window, assert combo resets instead.
+5. **[depends: 4] Razor attack damages enemy**
+   - Attack input damages an in-range enemy; 0 health → despawn marker.
+   - Test: headless `App`, enemy in range, attack, assert damage + despawn
+     marker at 0 health.
    - Files: `src/combat/razor.rs`.
 
-7. **[depends: 3, 6] Scripted intro/outro plays around the encounter**
-   - Behavior: entering `Playing` triggers a short scripted sequence (camera
-     pan or fixed dialogue beat); defeating the enemy transitions to `Outro`.
-   - Test: state-transition logic tested per #1's pattern; the actual
-     camera-pan visuals are a manual-verification seam like M0 #6.
+6. **[depends: 5] Razor combo bonus**
+   - Chained attacks within a timing window add bonus damage/anim state.
+   - Test: headless `App` — 2 attacks inside window → bonus applied;
+     outside window → combo resets.
+   - Files: `src/combat/razor.rs`.
+
+7. **[depends: 3, 6] Scripted intro/outro**
+   - Entering `Playing` triggers a scripted beat; defeating the enemy →
+     `Outro`.
+   - Test: transitions tested per #1; visuals are manual per M0 #6.
    - Files: `src/game_state.rs`, `src/level.rs`.
 
 ## M2 — Cover meter + dialogue
 
-Goal per GDD §9: Darrow's Cover meter, one branching dialogue interaction,
-one reactive NPC. Sketched at milestone grain for now — re-slice into
-increments (per this same template) once M1 lands, since the actual dialogue
-data shape (RON/JSON via `serde`) and event wiring should follow real M1
-patterns rather than be guessed today. Known must-have increments to include
-when it's re-sliced:
-- Cover meter as a resource/component with explicit raise/lower events.
-- Cover crossing a threshold gates at least one dialogue branch.
-- Dialogue content loads from a data file (not hardcoded strings) via `serde`.
-- One NPC reacts (visibly/behaviorally) to current Cover state.
+Goal: Cover meter, one branching dialogue interaction, one reactive NPC.
+Sketch only — re-slice once M1 lands (needs M1's real file shapes/APIs).
+Must-haves:
+- Cover meter resource/component + explicit raise/lower events.
+- Cover crossing a threshold gates ≥1 dialogue branch.
+- Dialogue content from a data file via `serde`, not hardcoded strings.
+- ≥1 NPC reacts (visibly/behaviorally) to current Cover state.
 
 ## M3 — Sevro + squad command
 
-Goal per GDD §9: second playable character, 2–3-Howler squad-command demo.
-Re-slice once M2 lands. Known must-have increments:
-- Character-select or character-swap mechanism (Darrow ↔ Sevro).
-- Sevro's distinct movement/combat kit (stealth pounce, no razor combo).
-- Howler squad entities with a command-target component (Hold/Flank).
-- One command issued by the player changes at least one Howler's behavior
-  observably (position or engagement state).
+Goal: second playable character, 2–3-Howler squad-command demo. Re-slice
+once M2 lands. Must-haves:
+- Character-select/swap (Darrow ↔ Sevro).
+- Sevro's distinct kit (stealth pounce, no razor combo).
+- Howler entities with a command-target component (Hold/Flank).
+- ≥1 player command observably changes a Howler's position/engagement state.
 
 ## M4 — Institute set-piece
 
-Goal per GDD §9: scaled-down House war-game skirmish. Re-slice once M3
-lands. Known must-have increments:
-- Multiple simultaneous enemy/ally entities without frame-time regression
-  (perf-aware ECS — establish a basic benchmark/test budget here).
+Goal: scaled-down House war-game skirmish. Re-slice once M3 lands.
+Must-haves:
+- Multiple simultaneous entities, no frame-time regression (perf
+  budget/benchmark established here).
 - Save/load of encounter state via `serde` + file I/O.
-- Win/lose condition detection for the skirmish.
+- Win/lose condition detection.
 
-## Why M2–M4 aren't fully sliced yet
+## Why M2–M4 aren't sliced yet
 
-Slicing increments this thin requires knowing the real APIs/module shapes a
-prior milestone produced (per `craft-code:planning`'s independence rule: two
-increments are only independent if they touch disjoint files, which you can't
-judge accurately for code that doesn't exist yet). Re-run this same
-breakdown exercise for M2 once M1 is green, for M3 once M2 is green, and so
-on — each milestone's plan should land in this same file (or a new
-`docs/craft-code/plans/YYYY-MM-DD-<milestone>.md`) right before you start it.
+Increment independence (`craft-code:planning`) requires knowing real file
+shapes a prior milestone produced — can't judge that for code that doesn't
+exist yet. Re-run this breakdown for M2 once M1 is green, M3 once M2 is
+green, and so on. Land each milestone's slice in this file (or a new
+`docs/craft-code/plans/YYYY-MM-DD-<milestone>.md`) right before starting it.
