@@ -73,25 +73,43 @@ WASD, basic camera. First real Cargo/Bevy contact.
      moved in the expected (forward) direction by the expected amount.
    - Files: `src/movement/mod.rs`, `src/player.rs`.
 
-6. **[depends: 5] Capsule mesh renders at the player's Transform**
-   - Behavior: spawn a capsule `Mesh3d`/`MeshMaterial3d` on the player entity
-     so it's visible on screen at the position #2–#5 already drive correctly.
+6. **[depends: 5] Scene is actually visible: capsule mesh + light + a fixed camera**
+   - Behavior: three pieces have to exist together before anything is visible
+     on screen at all, so they're bundled as one increment rather than three
+     individually-unverifiable slivers:
+     - spawn a capsule `Mesh3d`/`MeshMaterial3d` on the player entity, at the
+       position #2–#5 already drive correctly;
+     - spawn a light (`PointLight` or `DirectionalLight`) into the scene — a
+       `StandardMaterial` capsule with zero lights renders solid black, which
+       looks identical to "nothing spawned" and is a common, confusing dead
+       end if it's skipped or deferred to a later increment;
+     - spawn a `Camera3d` entity at a fixed position that actually points at
+       the origin (a static offset is fine here — making it *follow* the
+       player is #7's job, not this one).
    - "Test": this is rendering glue with no meaningful headless assertion —
-     verify by eye (`cargo run`, confirm a capsule appears and WASD moves it).
-     Note this explicitly as a manual-verification step, not a gap in TDD
-     discipline (per `craft-code:verification` — some seams are genuinely
-     UI/rendering and get proven by running the app, not a unit test).
-   - Files: `src/player.rs`.
+     verify by eye (`cargo run`, confirm a lit capsule is visible on screen
+     and WASD moves it). Note this explicitly as a manual-verification step,
+     not a gap in TDD discipline (per `craft-code:verification` — some seams
+     are genuinely UI/rendering and get proven by running the app, not a unit
+     test). Splitting mesh/light/camera into separate increments would leave
+     each one individually unverifiable by eye, since the window shows
+     nothing at all until all three exist — that's the reason they're one
+     increment here instead of three.
+   - Files: `src/player.rs` (mesh/material), `src/camera.rs` (new — fixed
+     camera + light spawn for now; #7 adds follow behavior on top of this).
 
-7. **[depends: 6] Basic camera follows the player**
-   - Behavior: a fixed-offset third-person (or simple orbit) camera whose
-     position is a deterministic function of the player's `Transform`.
+7. **[depends: 6] Camera follows the player instead of staying fixed**
+   - Behavior: the camera's position becomes a deterministic function of the
+     player's `Transform` every frame (fixed-offset third-person, or a simple
+     orbit) instead of the static position #6 used just to first prove
+     anything renders.
    - Test: the offset-calculation itself is pure and testable headless
      (given player position P and offset O, camera position == P + O);
-     visual confirmation of "does it look right" is manual per #6's note.
-   - Files: `src/camera.rs` (new).
+     visual confirmation of "does it look right"/"tracks smoothly" is manual
+     per #6's note.
+   - Files: `src/camera.rs`.
 
-**M0 exit condition:** `cargo run` opens a window, shows a capsule, WASD
+**M0 exit condition:** `cargo run` opens a window, shows a lit capsule, WASD
 moves it smoothly, a camera trails it — and every non-rendering behavior
 above has a green headless test behind it.
 

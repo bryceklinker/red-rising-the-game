@@ -310,8 +310,8 @@ shape), and use this as the going-forward pattern for M1–M4:**
 ```
 src/
   main.rs                 // assembles DefaultPlugins + feature plugins, nothing else
-  player.rs                // PlayerPlugin: spawns capsule, registers movement (M0)
-  camera.rs                // CameraPlugin: follow-cam (M0)
+  player.rs                // PlayerPlugin: spawns capsule mesh/material, registers movement (M0)
+  camera.rs                // CameraPlugin: spawns light + fixed camera first (M0 #6), then follow-cam behavior (M0 #7)
   movement/
     mod.rs                  // wires input.rs + apply.rs into the app (M0 #5)
     input.rs                 // PURE: wasd_to_direction (M0 #3)
@@ -364,9 +364,15 @@ it:
 - Increments #2–#5 → §3's headless-`App` pattern, directly; §5's pure/system
   split is exactly increment #3 (pure) feeding #4/#5 (systems).
 - Increment #6 → manual-verification seam, as already noted in the
-  milestone breakdown; no test pattern changes that.
+  milestone breakdown — now explicitly bundles the capsule mesh/material
+  *with* a light and a fixed camera, since a lit `StandardMaterial` needs a
+  light source to be visible at all and a camera to be seen through; doing
+  any one of the three alone leaves the increment unverifiable by eye. No
+  test pattern changes that — it's still eyeball verification, just of all
+  three pieces together.
 - Increment #7 → the camera-offset math is pure per §5's rule (`P + O`),
-  testable the same way as increment #3.
+  testable the same way as increment #3; it only adds *follow* behavior on
+  top of the already-visible fixed camera from #6.
 - M1 onward → §5's module layout and plugin-isolation rule are the
   going-forward convention once you re-slice M1–M4 (per the milestone
   breakdown's own note that re-slicing happens right before each
