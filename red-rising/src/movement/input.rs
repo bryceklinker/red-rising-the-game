@@ -15,5 +15,5 @@ pub fn get_direction_from_keys(pressed_keys: &[KeyCode]) -> Vec3 {
     if pressed_keys.contains(&KeyCode::KeyD) {
         direction.x += 1.0;
     }
-    return direction.normalize_or_zero();
+    direction.normalize_or_zero()
 }

@@ -10,7 +10,7 @@ fn setup_testing_app() -> App {
     app.add_plugins(player_movement_plugin);
     app.insert_resource(ButtonInput::<KeyCode>::default());
     app.update();
-    return app;
+    app
 }
 
 #[test]
