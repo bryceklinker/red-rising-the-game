@@ -1,3 +1,4 @@
+use crate::drilling::depth::check_drill_depth;
 use crate::drilling::rig::{
     despawn_drill_rig, drive_drill_rig, spawn_drill_rig, spawn_drill_rig_mesh,
 };
@@ -27,7 +28,10 @@ pub fn drilling_plugin(app: &mut App) {
     );
     app.add_systems(
         Update,
-        drive_drill_rig.run_if(in_state(GameState::Drilling)),
+        (
+            drive_drill_rig.run_if(in_state(GameState::Drilling)),
+            check_drill_depth.run_if(in_state(GameState::Drilling)),
+        ),
     );
     app.add_systems(
         OnExit(GameState::Drilling),

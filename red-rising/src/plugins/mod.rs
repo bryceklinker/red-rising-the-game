@@ -1,3 +1,4 @@
+pub mod call_event_plugin;
 pub mod camera_plugin;
 pub mod character_select_plugin;
 pub mod drilling_plugin;
