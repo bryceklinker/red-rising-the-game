@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use red_rising::game_state::GameState;
+use red_rising::plugins::audio_plugin::audio_plugin;
 use red_rising::plugins::call_event_plugin::call_event_plugin;
 use red_rising::plugins::camera_plugin::camera_plugin;
 use red_rising::plugins::character_select_plugin::character_select_plugin;
@@ -21,5 +22,6 @@ fn main() {
         .add_plugins(call_event_plugin)
         .add_plugins(decision_plugin)
         .add_plugins(end_plugin)
+        .add_plugins(audio_plugin)
         .run();
 }
