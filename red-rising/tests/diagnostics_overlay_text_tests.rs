@@ -29,4 +29,6 @@ fn when_diagnostics_update_runs_then_overlay_text_has_fps_and_entity_lines() {
     let (_, text) = text_query.iter(app.world()).next().unwrap();
     assert!(text.0.contains("FPS: "));
     assert!(text.0.contains("Entities: "));
+    assert!(text.0.contains("CPU: "));
+    assert!(text.0.contains("Memory: "));
 }

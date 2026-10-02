@@ -1,6 +1,7 @@
 use crate::diagnostics::format::format_diagnostic_line;
 use bevy::diagnostic::{
     DiagnosticsStore, EntityCountDiagnosticsPlugin, FrameTimeDiagnosticsPlugin,
+    SystemInformationDiagnosticsPlugin,
 };
 use bevy::prelude::{
     ButtonInput, Commands, Component, KeyCode, Node, Query, Res, ResMut, Resource, Text,
@@ -46,9 +47,17 @@ pub fn update_diagnostics_overlay(
     let entity_count = diagnostics
         .get(&EntityCountDiagnosticsPlugin::ENTITY_COUNT)
         .and_then(|diagnostic| diagnostic.value());
+    let cpu_usage = diagnostics
+        .get(&SystemInformationDiagnosticsPlugin::SYSTEM_CPU_USAGE)
+        .and_then(|diagnostic| diagnostic.smoothed());
+    let memory_usage = diagnostics
+        .get(&SystemInformationDiagnosticsPlugin::SYSTEM_MEM_USAGE)
+        .and_then(|diagnostic| diagnostic.smoothed());
     text.0 = [
         format_diagnostic_line("FPS", fps),
         format_diagnostic_line("Entities", entity_count),
+        format_diagnostic_line("CPU", cpu_usage),
+        format_diagnostic_line("Memory", memory_usage),
     ]
     .join("\n");
 }
