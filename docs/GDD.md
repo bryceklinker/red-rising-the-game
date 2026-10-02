@@ -202,7 +202,7 @@ than to front-load the biggest architecture possible.
 
 | Milestone | Scope | Rust concepts it forces |
 |---|---|---|
-| **M0 — Skeleton** | Open a window, render a placeholder capsule, move it with WASD, basic camera. No combat yet. | Cargo project structure, Bevy App/Plugin basics, ECS components/systems, `Query`/`Res` borrowing |
+| **M0 — Skeleton, extended into a prologue slice** | Window, capsule, WASD, camera; then extended (2026-10-01) into a short playable prologue — character select (Darrow), drilling for helium-3 on Lykos under Mars gravity, Nero's gas-pocket warning call, a 3-way decision ending the demo — plus basic audio and a memory/CPU/GPU/frame-time diagnostics overlay. | Cargo project structure, Bevy App/Plugin basics, ECS components/systems, `Query`/`Res` borrowing, `States`/`OnEnter`, a physics plugin (`avian3d`), `bevy_ui`, `bevy_audio`, `bevy::diagnostic` |
 | **M1 — Lykos vertical slice** | One small hand-built level (a mine tunnel), Darrow placeholder model, a single enemy type, one weapon (razor) with a 2–3 move combo, a scripted intro/outro. This is the first "book demo." | State machines (game states), input handling, collision, basic animation, enums/pattern matching for combat states |
 | **M2 — Cover meter + dialogue** | Add Darrow's Cover meter, a small branching dialogue interaction, one NPC that reacts to it. | Data-driven design (loading dialogue from data files, e.g. RON/JSON via `serde`), event systems, UI (`bevy_ui`) |
 | **M3 — Sevro + squad command** | Second playable character, a tiny 2–3-Howler squad-command demo (Hold/Flank on one small encounter). | More complex ECS relationships, trait objects vs. enums for character-specific behavior, shared vs. character-specific systems design |

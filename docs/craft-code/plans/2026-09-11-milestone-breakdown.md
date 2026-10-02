@@ -16,6 +16,14 @@ Goal: window, placeholder capsule, WASD movement, basic camera.
 See `2026-09-11-m0-implementation-plan.md` for the "how" (commands, DI,
 module layout, full headless-test example).
 
+> **2026-10-01: M0's exit criteria were extended into a full playable
+> prologue slice** (character select → drilling under Mars gravity → Nero's
+> call → a 3-way decision → end), with physics, audio, and perf-observability
+> hooks added. See `2026-10-01-m0-prologue-vertical-slice.md` for the
+> decisions, dependencies, and increment list — increments #1–6 below are
+> unchanged prerequisites; #7 (camera follow) is picked up as that doc's
+> increment 2.
+
 1. **[independent] Project scaffolds and builds**
    - `cargo new` + `bevy` dep, `dynamic_linking` enabled for dev.
    - No test yet — bar is `cargo build`/`cargo run` open an empty window.
