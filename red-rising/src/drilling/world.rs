@@ -9,6 +9,9 @@ use bevy::prelude::{
 
 const GROUND_SIZE: f32 = 20.0;
 const GROUND_THICKNESS: f32 = 1.0;
+// Sits below drilling::depth's DEPTH_THRESHOLD (10.0) so the drill rig has a
+// clear, open shaft to descend through before it ever reaches the floor.
+const GROUND_SURFACE_Y: f32 = -15.0;
 
 #[derive(Component)]
 pub struct DrillingGround;
@@ -18,7 +21,7 @@ pub fn spawn_drilling_ground(mut commands: Commands) {
         DrillingGround,
         RigidBody::Static,
         Collider::cuboid(GROUND_SIZE, GROUND_THICKNESS, GROUND_SIZE),
-        Transform::from_xyz(0.0, -GROUND_THICKNESS / 2.0, 0.0),
+        Transform::from_xyz(0.0, GROUND_SURFACE_Y - GROUND_THICKNESS / 2.0, 0.0),
     ));
 }
 
