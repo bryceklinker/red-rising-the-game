@@ -4,8 +4,8 @@ use bevy::color::Color;
 use bevy::mesh::Mesh;
 use bevy::pbr::StandardMaterial;
 use bevy::prelude::{
-    ButtonInput, Capsule3d, Commands, Component, KeyCode, Mesh3d, MeshMaterial3d, Query, Res,
-    ResMut, Transform, With,
+    ButtonInput, Capsule3d, Commands, Component, Entity, KeyCode, Mesh3d, MeshMaterial3d, Query,
+    Res, ResMut, Transform, With,
 };
 
 const SPEED: f32 = 1.0;
@@ -13,17 +13,29 @@ const SPEED: f32 = 1.0;
 #[derive(Component)]
 pub struct Player;
 
-pub fn spawn_player(
+pub fn spawn_player(mut commands: Commands) {
+    commands.spawn((Player, Transform::default()));
+}
+
+pub fn spawn_player_mesh(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    player: Query<Entity, With<Player>>,
 ) {
-    commands.spawn((
-        Player,
-        Transform::default(),
+    let Ok(entity) = player.single() else {
+        return;
+    };
+    commands.entity(entity).insert((
         Mesh3d(meshes.add(Capsule3d::new(0.4, 1.0))),
         MeshMaterial3d(materials.add(Color::srgb(0.8, 0.2, 0.2))),
     ));
+}
+
+pub fn despawn_player(mut commands: Commands, player: Query<Entity, With<Player>>) {
+    for entity in &player {
+        commands.entity(entity).despawn();
+    }
 }
 
 pub fn move_player(
