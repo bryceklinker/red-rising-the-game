@@ -1,4 +1,8 @@
-use bevy::prelude::{Button, Commands, Component, Entity, Node, Query, Text, With};
+use crate::game_state::GameState;
+use bevy::prelude::{
+    Button, Changed, Commands, Component, Entity, Interaction, NextState, Node, Query, ResMut,
+    Text, With,
+};
 
 #[derive(Component)]
 pub struct CallEventBanner;
@@ -18,6 +22,17 @@ pub fn spawn_call_event_banner(mut commands: Commands) {
                     button.spawn(Text::new("Acknowledge"));
                 });
         });
+}
+
+pub fn handle_acknowledge_call_button(
+    interactions: Query<&Interaction, (Changed<Interaction>, With<AcknowledgeCallButton>)>,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    for interaction in &interactions {
+        if *interaction == Interaction::Pressed {
+            next_state.set(GameState::Decision);
+        }
+    }
 }
 
 pub fn despawn_call_event_banner(

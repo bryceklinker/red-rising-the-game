@@ -3,7 +3,9 @@ use red_rising::game_state::GameState;
 use red_rising::plugins::call_event_plugin::call_event_plugin;
 use red_rising::plugins::camera_plugin::camera_plugin;
 use red_rising::plugins::character_select_plugin::character_select_plugin;
+use red_rising::plugins::decision_plugin::decision_plugin;
 use red_rising::plugins::drilling_plugin::drilling_plugin;
+use red_rising::plugins::end_plugin::end_plugin;
 use red_rising::plugins::player_movement_plugin::player_movement_plugin;
 
 fn main() {
@@ -15,5 +17,7 @@ fn main() {
         .add_plugins(character_select_plugin)
         .add_plugins(drilling_plugin)
         .add_plugins(call_event_plugin)
+        .add_plugins(decision_plugin)
+        .add_plugins(end_plugin)
         .run();
 }

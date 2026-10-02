@@ -1,7 +1,9 @@
 pub mod call_event;
 pub mod camera;
 pub mod character_select;
+pub mod decision;
 pub mod drilling;
+pub mod end;
 pub mod game_state;
 pub mod movement;
 pub mod player;
