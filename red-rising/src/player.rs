@@ -32,6 +32,12 @@ pub fn spawn_player_mesh(
     ));
 }
 
+pub fn despawn_player(mut commands: Commands, player: Query<Entity, With<Player>>) {
+    for entity in &player {
+        commands.entity(entity).despawn();
+    }
+}
+
 pub fn move_player(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut query: Query<&mut Transform, With<Player>>,

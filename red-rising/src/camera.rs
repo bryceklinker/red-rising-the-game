@@ -1,3 +1,4 @@
+use crate::drilling::rig::DrillRig;
 use crate::player::Player;
 use bevy::prelude::{
     Camera3d, Commands, Component, PointLight, Query, Transform, Vec3, With, Without, default,
@@ -29,14 +30,15 @@ pub fn spawn_scene(mut commands: Commands) {
 }
 
 pub fn follow_camera(
+    drill_rig: Query<&Transform, (With<DrillRig>, Without<MainCamera>)>,
     player: Query<&Transform, (With<Player>, Without<MainCamera>)>,
     mut camera: Query<&mut Transform, With<MainCamera>>,
 ) {
-    let Ok(player_transform) = player.single() else {
+    let Some(target_transform) = drill_rig.single().ok().or_else(|| player.single().ok()) else {
         return;
     };
     let Ok(mut camera_transform) = camera.single_mut() else {
         return;
     };
-    camera_transform.translation = camera_position_for(player_transform.translation, CAMERA_OFFSET);
+    camera_transform.translation = camera_position_for(target_transform.translation, CAMERA_OFFSET);
 }
