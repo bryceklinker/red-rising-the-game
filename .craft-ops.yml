@@ -1,0 +1,21 @@
+# Project conventions for the craft-ops skill suite.
+# Self-contained: distinct from craft-code's .craft-code.yml, never reads it.
+#
+# This repo is a local single-player Rust/Bevy game with no deployment target
+# yet — only the CI build/lint/test gate is in scope right now. Infra,
+# deployment/rollout, and observability sections are intentionally omitted
+# (YAGNI) rather than filled with placeholders; add them when a real need
+# (a release channel, a server component, etc.) shows up.
+
+stack: [github-actions]
+
+git:
+  main_branch: main
+
+cicd:
+  system: github-actions
+  artifact_registry: none   # no published artifact yet — build/test/lint gate only
+  artifact_identity: commit-sha
+
+paths:
+  pipelines: docs/craft-ops/pipelines
