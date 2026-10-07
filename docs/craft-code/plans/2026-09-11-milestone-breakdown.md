@@ -78,8 +78,16 @@ headless test.
 
 ## M1 — Lykos vertical slice
 
-Goal: one hand-built level (mine tunnel), Darrow placeholder, one enemy,
-razor + 2–3 move combo, scripted intro/outro.
+> **2026-10-07: redefined.** M1 no longer builds a decoupled combat demo
+> (mine tunnel/enemy/razor combo) — it stays on the real book path instead:
+> the gas-pocket Decision gets real branching consequences, then continues
+> through the Laurel snub and the Vale/Gift scene through to Darrow and Eo
+> being caught. See `2026-10-07-m1-lykos-vale.md` for the increments, the
+> book-canon grounding, and the Nero→Narol rename this surfaced. The
+> increment list below is superseded; kept for history only.
+
+~~Goal: one hand-built level (mine tunnel), Darrow placeholder, one enemy,
+razor + 2–3 move combo, scripted intro/outro.~~
 
 1. **[depends: M0] State machine: Intro → Playing → Outro**
    - `States` enum gates which systems run; starts `Intro`.
