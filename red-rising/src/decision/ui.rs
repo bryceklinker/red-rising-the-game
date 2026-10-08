@@ -1,4 +1,4 @@
-use crate::decision::outcome::{DecisionOption, EndState, end_state_for_choice};
+use crate::decision::outcome::{DecisionOption, DrillingOutcome, drilling_outcome_for};
 use crate::game_state::GameState;
 use bevy::prelude::{
     Button, Changed, Commands, Component, Entity, Interaction, NextState, Node, Query, ResMut,
@@ -12,7 +12,7 @@ pub struct DecisionUi;
 pub struct DecisionButton(pub DecisionOption);
 
 #[derive(Resource, Default)]
-pub struct ChosenEndState(pub Option<EndState>);
+pub struct ChosenDrillingOutcome(pub Option<DrillingOutcome>);
 
 const DECISION_OPTIONS: [(DecisionOption, &str); 3] = [
     (DecisionOption::KeepDrilling, "Keep drilling"),
@@ -35,13 +35,13 @@ pub fn spawn_decision_ui(mut commands: Commands) {
 
 pub fn handle_decision_button(
     interactions: Query<(&Interaction, &DecisionButton), Changed<Interaction>>,
-    mut chosen: ResMut<ChosenEndState>,
+    mut chosen: ResMut<ChosenDrillingOutcome>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
     for (interaction, button) in &interactions {
         if *interaction == Interaction::Pressed {
-            chosen.0 = Some(end_state_for_choice(button.0));
-            next_state.set(GameState::End);
+            chosen.0 = Some(drilling_outcome_for(button.0));
+            next_state.set(GameState::LaurelSnub);
         }
     }
 }

@@ -7,5 +7,8 @@ pub enum GameState {
     Drilling,
     CallEvent,
     Decision,
-    End,
+    LaurelSnub,
+    Vale,
+    ValeReaction,
+    Caught,
 }
