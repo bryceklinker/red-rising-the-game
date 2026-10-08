@@ -15,7 +15,7 @@ pub fn spawn_call_event_banner(mut commands: Commands) {
         .spawn((CallEventBanner, Node::default()))
         .with_children(|root| {
             root.spawn(Text::new(
-                "Nero: \"Hold up -- I'm reading a gas pocket near your position.\"",
+                "Narol: \"Hold up -- I'm reading a gas pocket near your position.\"",
             ));
             root.spawn((AcknowledgeCallButton, Button, Node::default()))
                 .with_children(|button| {
