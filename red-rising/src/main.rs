@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use red_rising::game_state::GameState;
+#[cfg(not(feature = "capture"))]
 use red_rising::plugins::audio_plugin::audio_plugin;
 use red_rising::plugins::call_event_plugin::call_event_plugin;
 use red_rising::plugins::camera_plugin::camera_plugin;
@@ -26,7 +27,8 @@ fn main() {
                 exit_condition: bevy::window::ExitCondition::DontExit,
                 ..default()
             })
-            .disable::<bevy::winit::WinitPlugin>(),
+            .disable::<bevy::winit::WinitPlugin>()
+            .disable::<bevy::audio::AudioPlugin>(),
     );
 
     app.add_plugins(diagnostics_plugin)
@@ -37,8 +39,10 @@ fn main() {
         .add_plugins(drilling_plugin)
         .add_plugins(call_event_plugin)
         .add_plugins(decision_plugin)
-        .add_plugins(end_plugin)
-        .add_plugins(audio_plugin);
+        .add_plugins(end_plugin);
+
+    #[cfg(not(feature = "capture"))]
+    app.add_plugins(audio_plugin);
 
     #[cfg(feature = "capture")]
     app.add_plugins(capture_plugin);
