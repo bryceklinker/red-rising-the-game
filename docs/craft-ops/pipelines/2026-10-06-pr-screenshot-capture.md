@@ -92,3 +92,28 @@ warranted for a non-blocking, low-stakes dev-experience feature.
 
 Existing `fmt`/`build`/`test`/`clippy` stage ordering, caching
 (`Swatinem/rust-cache`), and gate behavior are untouched by this change.
+
+## Correction (2026-10-09): `--attach` does not work with `GITHUB_TOKEN`
+
+The assumption above — that `gh pr comment --attach` would work against the
+default `GITHUB_TOKEN` — was wrong, confirmed by a real CI failure (job
+113725484038 of run 37900866074) and by reading `gh`'s own source
+(`internal/attachments/client.go`): `GITHUB_TOKEN` is a server-to-server
+installation token (`ghs_`), and `checkUploadTokenType` allowlists only
+`gho_`/`ghp_`/`github_pat_`/`ghu_`, rejecting `ghs_` client-side with
+"unsupported authentication type" before any network call. The upload
+endpoint itself also 404s installation tokens even with write access
+(`cli/cli#14309`), so there is no auth-mechanism, version, or permissions
+fix available — this is a deliberate, permanent restriction, not a bug.
+
+No new secret was introduced to work around it (would need a PAT with
+write access stored as a repo secret, trading "no new secrets" for inline
+media). Instead the stage now uses `actions/upload-artifact` — the option
+originally ruled out above — and the PR comment links to the run's
+artifacts page instead of embedding media inline. This is a real
+regression from the original goal (reviewers must download a zip, not see
+an inline image), accepted here because the capture stage is explicitly
+non-blocking/best-effort and getting *some* visible signal beats either
+silence or re-introducing the orphan-branch workaround this design
+deliberately avoided. Revisit with a scoped PAT secret if inline rendering
+becomes worth that trade.

@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: actions/checkout@v7.0.1
 
       - name: Install system dependencies
         run: |
@@ -46,3 +46,81 @@ jobs:
 
       - name: cargo clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
+
+  # Non-blocking: gives PR reviewers visual context on the real rendered
+  # game. Never gates merge — headless/software-rendering paths are more
+  # fragile than a pure compile, so every capture/stitch/attach step below
+  # is continue-on-error, and a failure here still gets a visible PR
+  # comment instead of silently posting nothing.
+  # See docs/craft-ops/pipelines/2026-10-06-pr-screenshot-capture.md.
+  screenshot-capture:
+    needs: build
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CAPTURE_DIR: target/capture
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            pkg-config \
+            libwayland-dev \
+            libudev-dev \
+            libasound2-dev \
+            libx11-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev \
+            mesa-vulkan-drivers \
+            ffmpeg
+
+      - name: Cache cargo registry and target
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          workspaces: red-rising
+          cache-on-failure: true
+
+      - name: Run scripted capture
+        id: capture
+        continue-on-error: true
+        run: cargo run --features capture
+
+      - name: Stitch captured frames into a clip
+        id: stitch
+        if: steps.capture.outcome == 'success'
+        continue-on-error: true
+        run: ../.github/scripts/stitch_capture_clip.sh "${CAPTURE_DIR}"
+
+      # gh pr comment --attach can't be used here: GITHUB_TOKEN is a
+      # server-to-server installation token, which both the gh CLI and the
+      # upload endpoint itself reject for attachments (see
+      # attach_capture_to_pr.sh for the full explanation). Upload as a
+      # workflow artifact instead and link to it from the PR comment.
+      - name: Upload capture artifact
+        id: upload-artifact
+        if: steps.capture.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: capture-pr-${{ github.event.pull_request.number }}
+          path: red-rising/${{ env.CAPTURE_DIR }}
+          if-no-files-found: ignore
+
+      - name: Attach capture to the PR
+        id: attach
+        if: steps.capture.outcome == 'success'
+        continue-on-error: true
+        run: ../.github/scripts/attach_capture_to_pr.sh "${PR_NUMBER}" "${CAPTURE_DIR}"
+
+      - name: Notify PR of capture failure
+        if: always() && (steps.capture.outcome == 'failure' || steps.attach.outcome == 'failure')
+        continue-on-error: true
+        run: gh pr comment "${PR_NUMBER}" --body "Screenshot/video capture failed this run — see job logs. This check is non-blocking and does not affect merge."
