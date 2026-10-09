@@ -1,6 +1,8 @@
 pub mod audio_plugin;
 pub mod call_event_plugin;
 pub mod camera_plugin;
+#[cfg(feature = "capture")]
+pub mod capture_plugin;
 pub mod caught_plugin;
 pub mod character_select_plugin;
 pub mod decision_plugin;
