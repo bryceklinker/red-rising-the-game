@@ -22,7 +22,16 @@ test_main_fails_when_no_capture_output_exists() {
   assert_failure "main must fail with no attachments to post" main 123 "${dir}"
 }
 
-test_main_invokes_gh_with_an_attach_flag_per_existing_file() {
+test_build_artifact_comment_links_to_the_run_artifacts_and_explains_why() {
+  local body
+  body="$(build_artifact_comment "https://github.com" "bryceklinker/red-rising-the-game" "999")"
+  assert_success "comment links to this run's actions page" \
+    bash -c "printf '%s' '${body}' | grep -q 'https://github.com/bryceklinker/red-rising-the-game/actions/runs/999'"
+  assert_success "comment explains the GITHUB_TOKEN attach limitation" \
+    bash -c "printf '%s' '${body}' | grep -q 'cli/cli#14309'"
+}
+
+test_main_posts_a_comment_linking_the_run_artifact_without_attach_flags() {
   local dir="${tmp}/full"
   mkdir -p "${dir}"
   touch "${dir}/character_select.png" "${dir}/end.png"
@@ -30,15 +39,16 @@ test_main_invokes_gh_with_an_attach_flag_per_existing_file() {
   local captured="${tmp}/gh-args"
   gh() { printf '%s\n' "$*" > "${captured}"; }
 
-  main 456 "${dir}"
+  main 456 "${dir}" "https://github.com" "bryceklinker/red-rising-the-game" "999"
   assert_success "gh was invoked" bash -c "[[ -s '${captured}' ]]"
   assert_success "gh was called with the PR number" bash -c "grep -q '456' '${captured}'"
-  assert_success "both existing files were attached" \
-    bash -c "grep -q '${dir}/character_select.png' '${captured}' && grep -q '${dir}/end.png' '${captured}'"
+  assert_success "the comment links to the run's artifacts, not --attach" \
+    bash -c "grep -q 'actions/runs/999' '${captured}' && ! grep -q -- '--attach' '${captured}'"
 }
 
 test_select_existing_attachments_filters_to_present_files_in_fixed_order
 test_main_fails_when_no_capture_output_exists
-test_main_invokes_gh_with_an_attach_flag_per_existing_file
+test_build_artifact_comment_links_to_the_run_artifacts_and_explains_why
+test_main_posts_a_comment_linking_the_run_artifact_without_attach_flags
 
 report

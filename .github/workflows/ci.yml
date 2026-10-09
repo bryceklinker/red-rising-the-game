@@ -99,6 +99,21 @@ jobs:
         continue-on-error: true
         run: ../.github/scripts/stitch_capture_clip.sh "${CAPTURE_DIR}"
 
+      # gh pr comment --attach can't be used here: GITHUB_TOKEN is a
+      # server-to-server installation token, which both the gh CLI and the
+      # upload endpoint itself reject for attachments (see
+      # attach_capture_to_pr.sh for the full explanation). Upload as a
+      # workflow artifact instead and link to it from the PR comment.
+      - name: Upload capture artifact
+        id: upload-artifact
+        if: steps.capture.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: capture-pr-${{ github.event.pull_request.number }}
+          path: red-rising/${{ env.CAPTURE_DIR }}
+          if-no-files-found: ignore
+
       - name: Attach capture to the PR
         id: attach
         if: steps.capture.outcome == 'success'
