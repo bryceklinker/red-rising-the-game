@@ -10,7 +10,7 @@ use bevy::ecs::schedule::IntoScheduleConfigs;
 use bevy::log::info;
 use bevy::prelude::{
     App, Assets, ButtonInput, Camera2d, Commands, Entity, Image, IsDefaultUiCamera, KeyCode, Query,
-    ResMut, Startup, Update, With, default, in_state,
+    Res, ResMut, Startup, State, Update, With, default,
 };
 use bevy::render::render_resource::{TextureFormat, TextureUsages};
 use std::time::Duration;
@@ -30,9 +30,13 @@ pub fn capture_plugin(app: &mut App) {
         (
             advance_scripted_session,
             auto_advance_game_state,
-            auto_drill.run_if(in_state(GameState::Drilling)),
+            auto_press_forward.run_if(in_drilling_or_vale_state),
         ),
     );
+}
+
+fn in_drilling_or_vale_state(state: Res<State<GameState>>) -> bool {
+    matches!(state.get(), GameState::Drilling | GameState::Vale)
 }
 
 fn setup_capture_render_target(
@@ -74,6 +78,6 @@ fn capture_render_target_image() -> Image {
     image
 }
 
-fn auto_drill(mut keyboard: ResMut<ButtonInput<KeyCode>>) {
+fn auto_press_forward(mut keyboard: ResMut<ButtonInput<KeyCode>>) {
     keyboard.press(KeyCode::KeyW);
 }

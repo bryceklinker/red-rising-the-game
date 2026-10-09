@@ -3,12 +3,14 @@ pub mod call_event;
 pub mod camera;
 #[cfg(feature = "capture")]
 pub mod capture;
+pub mod caught;
 pub mod character_select;
 pub mod decision;
 pub mod diagnostics;
 pub mod drilling;
-pub mod end;
 pub mod game_state;
+pub mod laurel_snub;
 pub mod movement;
 pub mod player;
 pub mod plugins;
+pub mod vale;

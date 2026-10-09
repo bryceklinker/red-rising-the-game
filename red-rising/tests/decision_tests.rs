@@ -1,8 +1,8 @@
 use bevy::MinimalPlugins;
 use bevy::prelude::{App, AppExtStates, Entity, Interaction, NextState, State};
 use bevy::state::app::StatesPlugin;
-use red_rising::decision::outcome::{DecisionOption, EndState};
-use red_rising::decision::ui::{ChosenEndState, DecisionButton, DecisionUi};
+use red_rising::decision::outcome::{DecisionOption, DrillingOutcome, NarolReaction};
+use red_rising::decision::ui::{ChosenDrillingOutcome, DecisionButton, DecisionUi};
 use red_rising::game_state::GameState;
 use red_rising::plugins::decision_plugin::decision_plugin;
 
@@ -38,7 +38,7 @@ fn when_entering_decision_then_three_buttons_are_spawned() {
 }
 
 #[test]
-fn when_get_out_and_check_is_pressed_then_state_transitions_to_end_with_that_outcome() {
+fn when_get_out_and_check_is_pressed_then_state_transitions_to_laurel_snub_with_that_outcome() {
     let mut app = setup_testing_app();
     let entity = button_entity_for(&mut app, DecisionOption::GetOutAndCheck);
 
@@ -49,9 +49,16 @@ fn when_get_out_and_check_is_pressed_then_state_transitions_to_end_with_that_out
     app.update();
 
     let state = app.world().resource::<State<GameState>>();
-    assert_eq!(*state.get(), GameState::End);
-    let chosen = app.world().resource::<ChosenEndState>();
-    assert_eq!(chosen.0, Some(EndState::GotOutAndChecked));
+    assert_eq!(*state.get(), GameState::LaurelSnub);
+    let chosen = app.world().resource::<ChosenDrillingOutcome>();
+    assert_eq!(
+        chosen.0,
+        Some(DrillingOutcome {
+            yield_kilos: 32,
+            injured: false,
+            narol_reaction: NarolReaction::Relieved,
+        })
+    );
 }
 
 #[test]

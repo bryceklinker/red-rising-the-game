@@ -4,15 +4,17 @@ use bevy::state::app::StatesPlugin;
 use red_rising::capture::auto_advance::auto_advance_game_state;
 use red_rising::capture::script::{ScriptStep, ScriptedSession};
 use red_rising::character_select::CharacterSelectButton;
-use red_rising::decision::ui::ChosenEndState;
+use red_rising::decision::ui::ChosenDrillingOutcome;
 use red_rising::game_state::GameState;
+use red_rising::vale::reaction::ChosenValeReaction;
 
 fn setup_testing_app(steps: Vec<ScriptStep>) -> App {
     let mut app = App::new();
     app.add_plugins(MinimalPlugins);
     app.add_plugins(StatesPlugin);
     app.init_state::<GameState>();
-    app.init_resource::<ChosenEndState>();
+    app.init_resource::<ChosenDrillingOutcome>();
+    app.init_resource::<ChosenValeReaction>();
     app.insert_resource(ScriptedSession::new(steps));
     app.add_systems(Update, auto_advance_game_state);
     app
@@ -69,8 +71,8 @@ fn when_script_has_not_moved_past_current_state_then_game_state_does_not_advance
 }
 
 #[test]
-fn when_script_moves_past_decision_then_chosen_end_state_is_set() {
-    let mut app = setup_testing_app(vec![ScriptStep::WaitForState(GameState::End)]);
+fn when_script_moves_past_decision_then_chosen_drilling_outcome_is_set() {
+    let mut app = setup_testing_app(vec![ScriptStep::WaitForState(GameState::LaurelSnub)]);
     app.world_mut()
         .resource_mut::<bevy::prelude::NextState<GameState>>()
         .set(GameState::Decision);
@@ -82,7 +84,26 @@ fn when_script_moves_past_decision_then_chosen_end_state_is_set() {
 
     assert_eq!(
         *app.world().resource::<State<GameState>>().get(),
-        GameState::End
+        GameState::LaurelSnub
     );
-    assert!(app.world().resource::<ChosenEndState>().0.is_some());
+    assert!(app.world().resource::<ChosenDrillingOutcome>().0.is_some());
+}
+
+#[test]
+fn when_script_moves_past_vale_reaction_then_chosen_vale_reaction_is_set() {
+    let mut app = setup_testing_app(vec![ScriptStep::WaitForState(GameState::Caught)]);
+    app.world_mut()
+        .resource_mut::<bevy::prelude::NextState<GameState>>()
+        .set(GameState::ValeReaction);
+    app.update();
+
+    for _ in 0..3 {
+        app.update();
+    }
+
+    assert_eq!(
+        *app.world().resource::<State<GameState>>().get(),
+        GameState::Caught
+    );
+    assert!(app.world().resource::<ChosenValeReaction>().0.is_some());
 }

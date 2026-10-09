@@ -1,7 +1,8 @@
 use crate::capture::script::{ScriptStep, ScriptedSession};
-use crate::decision::outcome::{DecisionOption, end_state_for_choice};
-use crate::decision::ui::ChosenEndState;
+use crate::decision::outcome::{DecisionOption, drilling_outcome_for};
+use crate::decision::ui::ChosenDrillingOutcome;
 use crate::game_state::GameState;
+use crate::vale::reaction::{ChosenValeReaction, ValeReactionChoice};
 use bevy::prelude::{NextState, Res, ResMut, State};
 
 /// Drives `GameState` transitions directly from the scripted session instead of
@@ -14,7 +15,8 @@ pub fn auto_advance_game_state(
     session: Res<ScriptedSession>,
     current_state: Res<State<GameState>>,
     mut next_state: ResMut<NextState<GameState>>,
-    mut chosen_end_state: ResMut<ChosenEndState>,
+    mut chosen_drilling_outcome: ResMut<ChosenDrillingOutcome>,
+    mut chosen_vale_reaction: ResMut<ChosenValeReaction>,
 ) {
     let current = *current_state.get();
     if !script_has_moved_past(&session, current) {
@@ -26,7 +28,10 @@ pub fn auto_advance_game_state(
     };
 
     if current == GameState::Decision {
-        chosen_end_state.0 = Some(end_state_for_choice(DecisionOption::KeepDrilling));
+        chosen_drilling_outcome.0 = Some(drilling_outcome_for(DecisionOption::KeepDrilling));
+    }
+    if current == GameState::ValeReaction {
+        chosen_vale_reaction.0 = Some(ValeReactionChoice::Awe);
     }
     next_state.set(next);
 }
@@ -35,8 +40,10 @@ fn next_game_state(current: GameState) -> Option<GameState> {
     match current {
         GameState::CharacterSelect => Some(GameState::Drilling),
         GameState::CallEvent => Some(GameState::Decision),
-        GameState::Decision => Some(GameState::End),
-        GameState::Drilling | GameState::End => None,
+        GameState::Decision => Some(GameState::LaurelSnub),
+        GameState::LaurelSnub => Some(GameState::Vale),
+        GameState::ValeReaction => Some(GameState::Caught),
+        GameState::Drilling | GameState::Vale | GameState::Caught => None,
     }
 }
 
