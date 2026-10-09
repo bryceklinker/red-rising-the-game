@@ -2,7 +2,9 @@ use bevy::MinimalPlugins;
 use bevy::app::AppExit;
 use bevy::prelude::{App, AppExtStates, Messages, NextState, Update};
 use bevy::state::app::StatesPlugin;
-use red_rising::capture::runner::advance_scripted_session;
+use red_rising::capture::runner::{
+    ScriptWatchdog, WAIT_FOR_STATE_TIMEOUT_TICKS, advance_scripted_session,
+};
 use red_rising::capture::script::{ScriptStep, ScriptedSession};
 use red_rising::game_state::GameState;
 
@@ -12,6 +14,7 @@ fn setup_testing_app(steps: Vec<ScriptStep>) -> App {
     app.add_plugins(StatesPlugin);
     app.init_state::<GameState>();
     app.insert_resource(ScriptedSession::new(steps));
+    app.init_resource::<ScriptWatchdog>();
     app.add_systems(Update, advance_scripted_session);
     app
 }
@@ -84,4 +87,32 @@ fn when_exit_step_runs_then_an_app_exit_message_is_written() {
 
     assert_eq!(app.world().resource::<ScriptedSession>().front(), None);
     assert!(!app.world().resource::<Messages<AppExit>>().is_empty());
+}
+
+#[test]
+fn when_the_expected_state_is_reached_then_the_watchdog_resets() {
+    let mut app = setup_testing_app(vec![ScriptStep::WaitForState(GameState::Drilling)]);
+
+    for _ in 0..10 {
+        app.update();
+    }
+    assert_eq!(app.world().resource::<ScriptWatchdog>().ticks_waited(), 10);
+
+    app.world_mut()
+        .resource_mut::<NextState<GameState>>()
+        .set(GameState::Drilling);
+    app.update();
+    app.update();
+
+    assert_eq!(app.world().resource::<ScriptWatchdog>().ticks_waited(), 0);
+}
+
+#[test]
+#[should_panic(expected = "capture watchdog")]
+fn when_wait_for_state_never_resolves_then_the_watchdog_panics_loudly() {
+    let mut app = setup_testing_app(vec![ScriptStep::WaitForState(GameState::Drilling)]);
+
+    for _ in 0..=WAIT_FOR_STATE_TIMEOUT_TICKS {
+        app.update();
+    }
 }

@@ -30,3 +30,8 @@ name = "capture_runner_tests"
 path = "tests/capture_runner_tests.rs"
 required-features = ["capture"]
 
+[[test]]
+name = "capture_auto_advance_tests"
+path = "tests/capture_auto_advance_tests.rs"
+required-features = ["capture"]
+

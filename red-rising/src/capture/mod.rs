@@ -1,3 +1,4 @@
+pub mod auto_advance;
 pub mod runner;
 pub mod script;
 

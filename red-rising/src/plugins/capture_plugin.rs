@@ -1,19 +1,16 @@
-use crate::call_event::AcknowledgeCallButton;
 use crate::camera::{MainCamera, spawn_scene};
-use crate::capture::runner::advance_scripted_session;
-use crate::capture::script::{ScriptStep, ScriptedSession};
+use crate::capture::auto_advance::auto_advance_game_state;
+use crate::capture::runner::{ScriptWatchdog, advance_scripted_session};
+use crate::capture::script::ScriptedSession;
 use crate::capture::{CAPTURE_OUTPUT_DIR, CaptureTarget, prologue_script};
-use crate::character_select::CharacterSelectButton;
-use crate::decision::ui::DecisionButton;
 use crate::game_state::GameState;
 use bevy::app::ScheduleRunnerPlugin;
 use bevy::camera::{Camera, ClearColorConfig, RenderTarget};
 use bevy::ecs::schedule::IntoScheduleConfigs;
 use bevy::log::info;
 use bevy::prelude::{
-    App, Assets, ButtonInput, Camera2d, Commands, Component, Entity, Image, Interaction,
-    IsDefaultUiCamera, KeyCode, Query, Res, ResMut, Startup, State, Update, With, default,
-    in_state,
+    App, Assets, ButtonInput, Camera2d, Commands, Entity, Image, IsDefaultUiCamera, KeyCode, Query,
+    ResMut, Startup, Update, With, default, in_state,
 };
 use bevy::render::render_resource::{TextureFormat, TextureUsages};
 use std::time::Duration;
@@ -26,15 +23,14 @@ pub fn capture_plugin(app: &mut App) {
         1.0 / 30.0,
     )));
     app.insert_resource(ScriptedSession::new(prologue_script()));
+    app.init_resource::<ScriptWatchdog>();
     app.add_systems(Startup, setup_capture_render_target.after(spawn_scene));
     app.add_systems(
         Update,
         (
             advance_scripted_session,
-            auto_press::<CharacterSelectButton>.run_if(in_state(GameState::CharacterSelect)),
+            auto_advance_game_state,
             auto_drill.run_if(in_state(GameState::Drilling)),
-            auto_press::<AcknowledgeCallButton>.run_if(in_state(GameState::CallEvent)),
-            auto_press::<DecisionButton>.run_if(in_state(GameState::Decision)),
         ),
     );
 }
@@ -76,27 +72,6 @@ fn capture_render_target_image() -> Image {
     );
     image.texture_descriptor.usage |= TextureUsages::COPY_SRC;
     image
-}
-
-fn auto_press<B: Component>(
-    mut buttons: Query<&mut Interaction, With<B>>,
-    session: Res<ScriptedSession>,
-    current_state: Res<State<GameState>>,
-) {
-    if !script_has_moved_past(&session, *current_state.get()) {
-        return;
-    }
-    for mut interaction in &mut buttons {
-        *interaction = Interaction::Pressed;
-    }
-}
-
-fn script_has_moved_past(session: &ScriptedSession, current_state: GameState) -> bool {
-    match session.front() {
-        Some(ScriptStep::WaitForState(next)) => *next != current_state,
-        Some(ScriptStep::Exit) => true,
-        _ => false,
-    }
 }
 
 fn auto_drill(mut keyboard: ResMut<ButtonInput<KeyCode>>) {
