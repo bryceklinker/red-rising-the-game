@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: actions/checkout@v7.0.1
 
       - name: Install system dependencies
         run: |
@@ -66,7 +66,7 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.4.0
+        uses: actions/checkout@v7.0.1
 
       - name: Install system dependencies
         run: |
@@ -108,7 +108,7 @@ jobs:
         id: upload-artifact
         if: steps.capture.outcome == 'success'
         continue-on-error: true
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: capture-pr-${{ github.event.pull_request.number }}
           path: red-rising/${{ env.CAPTURE_DIR }}
