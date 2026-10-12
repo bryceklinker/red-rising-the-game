@@ -13,7 +13,7 @@
 M0 was "window, capsule, WASD, camera." It's now a short playable prologue:
 
 **CharacterSelect → Drilling (Mars gravity, drill-rig controls) → CallEvent
-(Nero warns of a gas pocket, drilling halts) → Decision (keep drilling / get
+(Narol warns of a gas pocket, drilling halts) → Decision (keep drilling / get
 out and check / wait for the team) → End.** Only Darrow is selectable; other
 characters are future milestones per the GDD.
 
@@ -139,7 +139,7 @@ way M0 increments #1–7 were)
 ## Exit criteria
 
 `cargo run` opens a window: pick Darrow at a character-select screen, drive
-a drill rig under Mars gravity, trigger Nero's call at a depth threshold
+a drill rig under Mars gravity, trigger Narol's call at a depth threshold
 (drilling visibly halts), choose one of 3 options, see an end screen
 reflecting the choice. A toggleable overlay shows frame time/entity
 count/CPU/memory (GPU where the backend supports it). Drill rumble loops
