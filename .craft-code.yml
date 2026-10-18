@@ -12,15 +12,15 @@ package_manager: cargo
 
 commands:
   install:      cargo fetch
-  build:        cargo build
-  test:         cargo test
+  build:        cargo build --jobs 4
+  test:         cargo test --jobs 4
   # No acceptance-level (outer-loop) surface yet — this is a local game client,
   # not a networked service. Revisit once there's something acceptance-testable
   # (e.g. a headless/deterministic run of a full level, or multiplayer). Until
   # then this command is aspirational and expected to no-op / not exist yet.
-  acceptance:   cargo test --test acceptance -- --ignored
+  acceptance:   cargo test --jobs 4 --test acceptance -- --ignored
   run:          cargo run
-  lint:         cargo clippy --all-targets --all-features -- -D warnings
+  lint:         cargo clippy --jobs 4 --all-targets --all-features -- -D warnings
   format_check: cargo fmt --check
   format_write: cargo fmt
 
