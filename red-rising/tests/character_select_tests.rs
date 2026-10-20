@@ -1,4 +1,6 @@
 use bevy::MinimalPlugins;
+use bevy::asset::Assets;
+use bevy::image::Image;
 use bevy::prelude::{App, AppExtStates, Entity, Interaction, State, With};
 use bevy::state::app::StatesPlugin;
 use red_rising::character_select::CharacterSelectButton;
@@ -10,6 +12,7 @@ fn setup_testing_app() -> App {
     app.add_plugins(MinimalPlugins);
     app.add_plugins(StatesPlugin);
     app.init_state::<GameState>();
+    app.insert_resource(Assets::<Image>::default());
     app.add_plugins(character_select_plugin);
     app.update();
     app
