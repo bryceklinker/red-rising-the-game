@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly FRAME_ORDER=(character_select drilling call_event decision end)
+readonly FRAME_ORDER=(character_select drilling call_event decision laurel_snub vale vale_reaction caught)
 readonly FRAME_DURATION_SECONDS=2
 
 select_existing_frames() {
