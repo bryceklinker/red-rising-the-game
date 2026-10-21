@@ -5,7 +5,7 @@ use bevy::mesh::Mesh;
 use bevy::pbr::StandardMaterial;
 use bevy::prelude::{
     ButtonInput, Capsule3d, Commands, Component, Entity, KeyCode, Mesh3d, MeshMaterial3d, Query,
-    Res, ResMut, Sphere, Transform, With, default,
+    Res, ResMut, Sphere, Transform, Vec3, With, default,
 };
 
 const SPEED: f32 = 1.0;
@@ -25,9 +25,18 @@ const HEAD_CENTER_Y: f32 = 0.7;
 const TORSO_CENTER_Y: f32 = 0.2;
 const ARM_CENTER_Y: f32 = 0.225;
 const LEG_CENTER_Y: f32 = -0.5;
+const KNEE_CENTER_Y: f32 = LEG_CENTER_Y + 0.1;
+
+const DUST_PATCH_RADIUS: f32 = 0.05;
+const DUST_PATCH_SCALE: Vec3 = Vec3::new(1.0, 1.0, 0.3);
 
 const SKIN_COLOR: Color = Color::srgb(0.72, 0.42, 0.32);
-const GARMENT_COLOR: Color = Color::srgb(0.5, 0.12, 0.09);
+// Cheap Red-caste fry suit: a worn, utilitarian work-suit rather than bare limbs.
+const SUIT_COLOR: Color = Color::srgb_u8(46, 16, 8);
+// StandardMaterial has no texture-free multi-layer/decal blending, so patchy
+// Mars dirt is approximated with small flattened primitives in a lighter dust
+// tone laid on the suit's surface, rather than a uniform tint over the whole suit.
+const DUST_COLOR: Color = Color::srgb_u8(120, 70, 45);
 
 #[derive(Component)]
 pub struct Player;
@@ -51,9 +60,14 @@ pub fn spawn_player_mesh(
         perceptual_roughness: 0.9,
         ..default()
     });
-    let garment = materials.add(StandardMaterial {
-        base_color: GARMENT_COLOR,
-        perceptual_roughness: 0.85,
+    let suit = materials.add(StandardMaterial {
+        base_color: SUIT_COLOR,
+        perceptual_roughness: 0.95,
+        ..default()
+    });
+    let dust = materials.add(StandardMaterial {
+        base_color: DUST_COLOR,
+        perceptual_roughness: 1.0,
         ..default()
     });
 
@@ -61,37 +75,56 @@ pub fn spawn_player_mesh(
     let torso_mesh = meshes.add(Capsule3d::new(TORSO_RADIUS, TORSO_LENGTH));
     let arm_mesh = meshes.add(Capsule3d::new(LIMB_RADIUS, ARM_LENGTH));
     let leg_mesh = meshes.add(Capsule3d::new(LEG_RADIUS, LEG_LENGTH));
+    let dust_patch_mesh = meshes.add(Sphere::new(DUST_PATCH_RADIUS));
 
     commands.entity(entity).with_children(|body| {
         body.spawn((
             Mesh3d(head_mesh),
-            MeshMaterial3d(skin.clone()),
+            MeshMaterial3d(skin),
             Transform::from_xyz(0.0, HEAD_CENTER_Y, 0.0),
         ));
         body.spawn((
             Mesh3d(torso_mesh),
-            MeshMaterial3d(garment.clone()),
+            MeshMaterial3d(suit.clone()),
             Transform::from_xyz(0.0, TORSO_CENTER_Y, 0.0),
         ));
         body.spawn((
             Mesh3d(arm_mesh.clone()),
-            MeshMaterial3d(skin.clone()),
+            MeshMaterial3d(suit.clone()),
             Transform::from_xyz(-ARM_OFFSET_X, ARM_CENTER_Y, 0.0),
         ));
         body.spawn((
             Mesh3d(arm_mesh),
-            MeshMaterial3d(skin),
+            MeshMaterial3d(suit.clone()),
             Transform::from_xyz(ARM_OFFSET_X, ARM_CENTER_Y, 0.0),
         ));
         body.spawn((
             Mesh3d(leg_mesh.clone()),
-            MeshMaterial3d(garment.clone()),
+            MeshMaterial3d(suit.clone()),
             Transform::from_xyz(-LEG_OFFSET_X, LEG_CENTER_Y, 0.0),
         ));
         body.spawn((
             Mesh3d(leg_mesh),
-            MeshMaterial3d(garment),
+            MeshMaterial3d(suit),
             Transform::from_xyz(LEG_OFFSET_X, LEG_CENTER_Y, 0.0),
+        ));
+        body.spawn((
+            Mesh3d(dust_patch_mesh.clone()),
+            MeshMaterial3d(dust.clone()),
+            Transform::from_xyz(0.0, TORSO_CENTER_Y + 0.02, TORSO_RADIUS - 0.03)
+                .with_scale(DUST_PATCH_SCALE),
+        ));
+        body.spawn((
+            Mesh3d(dust_patch_mesh.clone()),
+            MeshMaterial3d(dust.clone()),
+            Transform::from_xyz(-LEG_OFFSET_X, KNEE_CENTER_Y, LEG_RADIUS - 0.02)
+                .with_scale(DUST_PATCH_SCALE),
+        ));
+        body.spawn((
+            Mesh3d(dust_patch_mesh),
+            MeshMaterial3d(dust),
+            Transform::from_xyz(LEG_OFFSET_X, KNEE_CENTER_Y, LEG_RADIUS - 0.02)
+                .with_scale(DUST_PATCH_SCALE),
         ));
     });
 }
